@@ -11,3 +11,6 @@ wheels/
 
 # Data
 data/
+
+# API Key
+**/openai_credentials.env

@@ -1,7 +1,7 @@
 from loguru import logger
 
 def main():
-    print("Hello from attribute-finder!")
+    logger.info('Hello from the attribute finder service!')
 
 
 if __name__ == "__main__":
