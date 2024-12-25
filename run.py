@@ -1,6 +1,6 @@
 import pandas as pd
 from loguru import logger
-from services.response.response import ResponseObject
+from services.response.response import get_response
 
 
 def main():

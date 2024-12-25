@@ -1,46 +1,44 @@
-import base64
-from openai import OpenAI
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import List
+from llm import llm_client
+from loguru import logger
 
 
-class ResponseObject(BaseModel):
-    model_name: Optional[str] = Field("gpt-4o", description="Model name for OpenAI")
-    api_key: str = Field(..., description="API key for OpenAI")
-    temperature: Optional[float] = Field(0, description="Temperature for OpenAI")
-    categories: List[str] = Field([""], description="Categories for the corresponding product category")
-    brand: str = Field("", description="The brand for the corresponding product")
-    prompt: str = Field("", description="The skeleton prompt for OpenAI")
-    target_group: str = Field("", description="The intended target group for the corresponding product")
-    max_tokens: Optional[int] = Field(50, description="Max tokens for OpenAI")
-    image_url: str = Field("", description="Image for OpenAI")
+def get_response(temperature: float = 0.0,
+        categories: List[str] = [],
+        product_category: str = "",
+        brand: str = "",
+        target_group: str = "",
+        max_tokens: int = 50,
+        image_url: str = ""
+    ) -> str:
     
-    @property
-    def client(self):
-        return OpenAI(api_key=self.api_key)
-
-    def get_response(self) -> str:
-        response = self.client.chat.completions.create(
-            temperature=self.temperature,
-            model=self.model_name,
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": f"{self.prompt}",
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"{self.image_url}"},
-                        },
-                    ],
-                }
-            ],
-        )
-
-        print(response.choices[0])
-
+    response = llm_client.chat.completions.create(
+        temperature=temperature,
+        model=llm_client.model_name,
+        max_tokens=max_tokens,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"Bitte gib das korrekte, zutreffende Attribut wieder.
+                                Hier sind die möglichen Optionen, aus denen ausgewählt werden kann: {categories}.
+                                Falls du nicht weisst welches Attribut wirklich zutrifft, gib bitte None zurück.
+                                Es handelt sich hier bei um folgende Marke: {brand} und die Beschreibung der Kategorie
+                                lautet: {product_category}. Die Target Group ist: {target_group}",
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"{image_url}"},
+                    },
+                ],
+            }
+        ],
+    )
     
+    logger.info(response.choices[0])
+    
+if __name__ == "__main__":
+    get_response(temperature=0.0,)
     

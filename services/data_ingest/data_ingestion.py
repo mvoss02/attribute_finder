@@ -16,8 +16,8 @@ def save_data(df: pd.DataFrame, file_path: str) -> None:
 
 
 if __name__ == "__main__":
-    from services.response.config import config
-    
+    from config import config
+        
     logger.info("Reading data from input files")
     product_data = read_csv(config.product_file_path_input)
     attribute_data = read_csv(config.attribute_file_path_input)
