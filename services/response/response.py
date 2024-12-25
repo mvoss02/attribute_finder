@@ -1,6 +1,7 @@
 from typing import List
 from llm import llm_client
 from loguru import logger
+from config import response_config
 
 
 def get_response(temperature: float = 0.0,
@@ -18,15 +19,20 @@ def get_response(temperature: float = 0.0,
         max_tokens=max_tokens,
         messages=[
             {
+                "role": "system", 
+                "content": response_config.system_prompt
+            },
+            {
                 "role": "user",
                 "content": [
                     {
                         "type": "text",
-                        "text": f"Bitte gib das korrekte, zutreffende Attribut wieder.
-                                Hier sind die möglichen Optionen, aus denen ausgewählt werden kann: {categories}.
-                                Falls du nicht weisst welches Attribut wirklich zutrifft, gib bitte None zurück.
-                                Es handelt sich hier bei um folgende Marke: {brand} und die Beschreibung der Kategorie
-                                lautet: {product_category}. Die Target Group ist: {target_group}",
+                        "text": response_config.prompt_template.format(
+                            categories=categories,
+                            product_category=product_category,
+                            brand=brand,
+                            target_group=target_group,
+                        ),
                     },
                     {
                         "type": "image_url",
@@ -40,5 +46,13 @@ def get_response(temperature: float = 0.0,
     logger.info(response.choices[0])
     
 if __name__ == "__main__":
-    get_response(temperature=0.0,)
+    examples = [
+        {
+            
+            
+        }
+    ]
+    
+    for example in examples:
+        get_response(**example)
     

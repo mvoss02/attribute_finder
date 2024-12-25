@@ -32,7 +32,17 @@ if __name__ == "__main__":
     attribute_data = merge_dataframes(attribute_data, category_data, left_on=['Katzuordnung'], right_on=['Kategorie'], merge_how='left')
     product_data = merge_dataframes(product_data, attribute_data, left_on=['WGR_norm', 'Kategorie'], right_on=['wgrNorm', 'Kategorie'], merge_how='left')
     
-    logger.info("Saving final dataset")
-    save_data(product_data, config.final_dataset_file_path)
+    # Seperate in color and non-color attributes
+    logger.info("Seperating dataframes based on colour attribute")
+    product_data_no_colour = product_data[product_data['Attribut Id']!='farbe']
+    product_data_colour = product_data[product_data['Attribut Id']=='farbe']
     
-    logger.info("Finished saving final dataset")
+    # Aggregate values to list
+    logger.info("Grouping the dataframe")
+    grouped_data = product_data_no_colour.groupby(config.group_by_columns)[config.aggregation_column].agg(list).reset_index()
+    
+    logger.info("Saving final dataset")
+    save_data(grouped_data, config.final_dataset_file_path)
+    save_data(product_data_colour, config.final_dataset_colour_file_path)
+    
+    logger.info("Finished saving final datasets")

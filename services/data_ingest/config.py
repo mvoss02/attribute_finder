@@ -22,5 +22,10 @@ class Config(BaseSettings):
     product_columns: List[str]
     attribute_columns: List[str]
     category_columns: List[str]
+    
+    aggregation_column: str
+    group_by_columns: List[str]
+    
+    final_dataset_colour_file_path: str
 
 config = Config()
