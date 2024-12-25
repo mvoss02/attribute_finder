@@ -16,7 +16,7 @@ def save_data(df: pd.DataFrame, file_path: str) -> None:
 
 
 if __name__ == "__main__":
-    from config import config
+    from services.response.config import config
     
     logger.info("Reading data from input files")
     product_data = read_csv(config.product_file_path_input)
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     
     logger.info("Merging dataframes")
     attribute_data = merge_dataframes(attribute_data, category_data, left_on=['Katzuordnung'], right_on=['Kategorie'], merge_how='left')
-    product_data = merge_dataframes(product_data, attribute_data, left_on=['WGR_norm'], right_on=['wgrNorm'], merge_how='left')
+    product_data = merge_dataframes(product_data, attribute_data, left_on=['WGR_norm', 'Kategorie'], right_on=['wgrNorm', 'Kategorie'], merge_how='left')
     
     logger.info("Saving final dataset")
     save_data(product_data, config.final_dataset_file_path)
