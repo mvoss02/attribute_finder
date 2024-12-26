@@ -24,6 +24,7 @@ def get_response(
     Get response from the LLM API. It should pick the correct attribute of the given product.
     This happens based on a supplied list of categories, the product category, brand, target group and an image of the product.
     Several categories are tested, except of the colour. Colour will be assessed in another file.
+    If is_color is set to True, the response will be for a colour (in terms of Hexcode).
 
     Args:
         temperature (float, optional): The temperature to use for the response. Defaults to 0.0.
