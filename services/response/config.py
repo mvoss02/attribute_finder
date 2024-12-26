@@ -10,6 +10,7 @@ class OpenAIConfig(BaseSettings):
     api_key: str
     model_name: str
 
+
 openai_config = OpenAIConfig()
 
 
@@ -22,5 +23,6 @@ class ResponseConfig(BaseSettings):
     system_prompt: str
     prompt_template: str
     prompt_template_color: str
+
 
 response_config = ResponseConfig()
