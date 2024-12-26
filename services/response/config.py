@@ -21,5 +21,6 @@ class ResponseConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file='settings.env')
     system_prompt: str
     prompt_template: str
+    prompt_template_color: str
 
 response_config = ResponseConfig()
