@@ -3,11 +3,12 @@ import requests
 from pathlib import Path
 from PIL import Image
 
-from typing import List, Optional
+from typing import List, Optional, Literal
 from llm import llm_client
 from loguru import logger
 from config import response_config
 import pandas as pd
+from pydantic import BaseModel
 
 
 def download_and_process_image(url: str, max_retries: int = 2) -> Optional[str]:
@@ -62,6 +63,9 @@ def get_response(temperature: float = 0.0,
     
     client = llm_client.get_client()
     
+    class Response(BaseModel):
+        response: str
+    
     # Process image first
     processed_image_path = download_and_process_image(image_url)
     if not processed_image_path:
@@ -73,7 +77,8 @@ def get_response(temperature: float = 0.0,
         with open(processed_image_path, "rb") as image_file:
             base64_image = base64.b64encode(image_file.read()).decode('utf-8')
         
-        response = client.chat.completions.create(
+        # chat.completions.create
+        response = client.beta.chat.completions.parse(
             temperature=temperature,
             model=llm_client.model_name,
             max_tokens=max_tokens,
@@ -103,6 +108,7 @@ def get_response(temperature: float = 0.0,
                     ],
                 }
             ],
+            response_format=Response
         )
         
         logger.info(response.choices[0])
@@ -121,7 +127,7 @@ if __name__ == "__main__":
     data = pd.read_csv('../../data/final_data/final_combined_data.csv')
     
     # Pick 5 random observations
-    random_sample = data.sample(n=3)
+    random_sample = data.sample(n=2)
     
     logger.debug(random_sample)
     
