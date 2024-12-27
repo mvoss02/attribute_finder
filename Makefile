@@ -1,4 +1,4 @@
-run-dev:
+run:
 	@echo "Running the run script..."
 	uv run python run.py
 
