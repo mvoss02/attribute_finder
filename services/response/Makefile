@@ -3,7 +3,7 @@ run-dev:
 	uv run python get_attribute.py
 
 run:
-	@echo "Running several examples through the LLM..."
+	@echo "Obtaining the attribute responses from the LLM..."
 	uv run python run.py
 
 run-with-ingest-data:

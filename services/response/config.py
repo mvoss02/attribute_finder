@@ -9,6 +9,7 @@ class OpenAIConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file='openai_credentials.env')
     api_key: str
     model_name: str
+    temperature: float
 
 
 openai_config = OpenAIConfig()

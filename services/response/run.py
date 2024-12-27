@@ -1,8 +1,7 @@
 import pandas as pd
+from config import openai_config
 from get_attribute import get_response
 from loguru import logger
-
-from config import config
 
 
 def run():
@@ -17,12 +16,12 @@ def run():
     logger.info('Iterate through the dataset and get attribute responses')
     data['response'] = data.apply(
         lambda row: get_response(
-            temperature=config.temperature,
+            temperature=openai_config.temperature,
             categories=row['Identifier'],
             product_category=row['WgrBez'],
-            brand=row['Marke'],
-            target_group=row['Zielgruppe'],
-            is_color=True if row['Identifier'] == 'farbe' else False,
+            brand=row['Labelgruppe_norm'],
+            target_group=row['Geschlecht'],
+            is_color=True if row['Attribut Id'] == 'farbe' else False,
         ),
         axis=1,
     )
