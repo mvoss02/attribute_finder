@@ -1,13 +1,15 @@
 import base64
+import json
 import os
 from typing import List, Optional
 
 import pandas as pd
-from config import response_config
 from image_preprocessing import download_and_process_image
 from llm import llm_client
 from loguru import logger
 from pydantic import BaseModel
+
+from config import response_config
 
 
 def get_response(
@@ -19,7 +21,7 @@ def get_response(
     max_tokens: int = 50,
     image_url: str = '',
     is_color: bool = False,
-) -> Optional[str]:
+) -> json:
     """
     Get response from the LLM API. It should pick the correct attribute of the given product.
     This happens based on a supplied list of categories, the product category, brand, target group and an image of the product.
@@ -94,7 +96,7 @@ def get_response(
             response_format=Response,
         )
 
-        logger.info(response.choices[0])
+        logger.info(response.choices[0].message.content)
         return response.choices[0].message.content
 
     except Exception as e:
@@ -111,8 +113,8 @@ if __name__ == '__main__':
     # Read in data
     data = pd.read_csv('../../data/final_data/final_combined_data.csv')
 
-    # Pick 5 random observations
-    random_sample = data.sample(n=5)
+    # Pick n random observations
+    random_sample = data.sample(n=3)
 
     for idx, row in random_sample.iterrows():
         result = get_response(
@@ -122,7 +124,7 @@ if __name__ == '__main__':
             brand=row['Labelgruppe_norm'],
             target_group=row['Geschlecht'],
             image_url=row['Bild_URL_1'],
-            is_color=False if row['Identifier'] != 'farbe' else True,
+            is_color=True if row['Identifier'] == 'farbe' else False,
         )
         if result is None:
             logger.warning(f'Failed to process row {idx}')

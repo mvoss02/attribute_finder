@@ -55,23 +55,15 @@ if __name__ == '__main__':
         merge_how='left',
     )
 
-    # Seperate in color and non-color attributes
-    logger.info('Seperating dataframes based on colour attribute')
-    product_data_no_colour = product_data[product_data['Attribut Id'] != 'farbe']
-    product_data_colour = product_data[product_data['Attribut Id'] == 'farbe']
-
     # Aggregate values to list
     logger.info('Grouping the dataframe')
     grouped_data = (
-        product_data_no_colour.groupby(config.group_by_columns)[
-            config.aggregation_column
-        ]
+        product_data.groupby(config.group_by_columns)[config.aggregation_column]
         .agg(list)
         .reset_index()
     )
 
     logger.info('Saving final dataset')
     save_data(grouped_data, config.final_dataset_file_path)
-    save_data(product_data_colour, config.final_dataset_colour_file_path)
 
     logger.info('Finished saving final datasets')
