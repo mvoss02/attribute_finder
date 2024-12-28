@@ -8,6 +8,25 @@ from loguru import logger
 from PIL import Image
 
 
+def write_failed_image(product_id: int, supplier_colour: str, url: str) -> None:
+    logger.info(f'Writing failed image url to the failed_images.txt file: {url}')
+    failed_dir = Path('../../data/failed_images')
+    failed_dir.mkdir(parents=True, exist_ok=True)
+
+    failed_file = failed_dir / 'failed_images.txt'
+    entry = f'{product_id},{supplier_colour},{url}\n'
+
+    # Check if file exists and if entry is already present
+    if failed_file.exists():
+        with open(failed_file, 'r') as f:
+            if entry in f.readlines():
+                return
+
+    # Append new entry
+    with open(failed_file, 'a') as f:
+        f.write(entry)
+
+
 def download_and_process_image(url: str, max_retries: int = 2) -> Optional[str]:
     """
     Download and process an image from a URL, with retry logic and validation.
@@ -20,6 +39,9 @@ def download_and_process_image(url: str, max_retries: int = 2) -> Optional[str]:
     Returns:
         Optional[str]: The URL of the processed image or None if failed.
     """
+
+    logger.info(f'Downloading and processing image from URL: {url}')
+
     for attempt in range(max_retries):
         try:
             # Download image with timeout

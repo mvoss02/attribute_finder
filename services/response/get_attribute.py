@@ -5,14 +5,15 @@ from typing import List, Optional
 
 import llm
 import pandas as pd
-from loguru import logger
-from preprocess_images import download_and_process_image
-from pydantic import BaseModel
-
 from config import response_config
+from loguru import logger
+from preprocess_images import download_and_process_image, write_failed_image
+from pydantic import BaseModel
 
 
 def get_response(
+    product_id: int,
+    supplier_colour: str,
     categories: Optional[List[str]],
     temperature: float = 0.0,
     product_category: str = '',
@@ -20,7 +21,7 @@ def get_response(
     target_group: str = '',
     max_tokens: int = 50,
     image_url: str = '',
-    is_color: bool = False,
+    is_color: bool = True,
 ) -> json:
     """
     Get response from the LLM API. It should pick the correct attribute of the given product.
@@ -29,6 +30,8 @@ def get_response(
     If is_color is set to True, the response will be for a colour (in terms of Hexcode).
 
     Args:
+        product_id (int): The product ID corresponding to the URL.
+        supplier_colour (str): The colour of the product as provided by the supplier.
         temperature (float, optional): The temperature to use for the response. Defaults to 0.0.
         categories (List[str], optional): A list of categories to use for the response. Defaults to [].
         product_category (str, optional): The product category to use for the response. Defaults to "".
@@ -52,6 +55,7 @@ def get_response(
     processed_image_path = download_and_process_image(image_url)
     if not processed_image_path:
         logger.error(f'Failed to process image from URL: {image_url}')
+        write_failed_image(product_id, supplier_colour, image_url)
         return None
 
     try:
@@ -77,7 +81,7 @@ def get_response(
                                 brand=brand,
                                 target_group=target_group,
                             )
-                            if is_color
+                            if not is_color
                             else response_config.prompt_template_color.format(
                                 product_category=product_category,
                                 brand=brand,
@@ -95,6 +99,23 @@ def get_response(
             ],
             response_format=Response,
         )
+
+        logger.debug(is_color)
+        logger.debug(
+            response_config.prompt_template.format(
+                categories=categories,
+                product_category=product_category,
+                brand=brand,
+                target_group=target_group,
+            )
+            if not is_color
+            else response_config.prompt_template_color.format(
+                product_category=product_category,
+                brand=brand,
+                target_group=target_group,
+            )
+        )
+        logger.debug(categories)
 
         logger.info(response.choices[0].message.content)
         return response.choices[0].message.content
@@ -116,7 +137,7 @@ if __name__ == '__main__':
     )
 
     # Pick n random observations
-    random_sample = data.sample(n=3)
+    random_sample = data.sample(n=10)
 
     for idx, row in random_sample.iterrows():
         result = get_response(
@@ -126,7 +147,7 @@ if __name__ == '__main__':
             brand=row['Labelgruppe_norm'],
             target_group=row['Geschlecht'],
             image_url=row['Bild_URL_1'],
-            is_color=True if row['Identifier'] == 'farbe' else False,
+            is_color=True if row['Attribut Id'] == 'farbe' else False,
         )
         if result is None:
             logger.warning(f'Failed to process row {idx}')
