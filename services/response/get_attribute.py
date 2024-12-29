@@ -117,8 +117,15 @@ def get_response(
         )
         logger.debug(categories)
 
-        logger.info(response.choices[0].message.content)
-        return response.choices[0].message.content
+        try:
+            json_response = json.loads(response.choices[0].message.content)
+            return json_response['response']
+        except json.JSONDecodeError as e:
+            logger.error(f'Failed to parse JSON response: {e}')
+            return response.choices[0].message.content
+        except KeyError as e:
+            logger.error(f'Response key not found in JSON: {e}')
+            return response.choices[0].message.content
 
     except Exception as e:
         logger.error(f'API call failed: {str(e)}')
@@ -137,10 +144,12 @@ if __name__ == '__main__':
     )
 
     # Pick n random observations
-    random_sample = data.sample(n=10)
+    random_sample = data.sample(n=3)
 
     for idx, row in random_sample.iterrows():
         result = get_response(
+            product_id=row['LiefArtNr'],
+            supplier_colour=row['LiefFarbe'],
             temperature=0.0,
             categories=row['Identifier'],
             product_category=row['WgrBez'],
