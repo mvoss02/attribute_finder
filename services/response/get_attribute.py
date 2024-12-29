@@ -100,22 +100,23 @@ def get_response(
             response_format=Response,
         )
 
-        logger.debug(is_color)
-        logger.debug(
-            response_config.prompt_template.format(
-                categories=categories,
-                product_category=product_category,
-                brand=brand,
-                target_group=target_group,
-            )
-            if not is_color
-            else response_config.prompt_template_color.format(
-                product_category=product_category,
-                brand=brand,
-                target_group=target_group,
-            )
-        )
-        logger.debug(categories)
+        # Debugging
+        # logger.debug(is_color)
+        # logger.debug(
+        #     response_config.prompt_template.format(
+        #         categories=categories,
+        #         product_category=product_category,
+        #         brand=brand,
+        #         target_group=target_group,
+        #     )
+        #     if not is_color
+        #     else response_config.prompt_template_color.format(
+        #         product_category=product_category,
+        #         brand=brand,
+        #         target_group=target_group,
+        #     )
+        # )
+        # logger.debug(categories)
 
         try:
             json_response = json.loads(response.choices[0].message.content)

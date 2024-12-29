@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 from config import openai_config
 from get_attribute import get_response
@@ -35,22 +37,26 @@ def get_response_if_empty(row):
 
 def run():
     logger.info('Hello from the attribute finder service!')
+    output_path = Path('../../data/output_data/output_data.csv')
+    input_path = Path('../../data/final_data/final_combined_data.csv')
 
-    # Read in data
-    logger.info('Read in data from the input file')
-    data = pd.read_csv('../../data/final_data/final_combined_data.csv')
+    # Load or create output data
+    if output_path.exists():
+        logger.info('Loading existing output file')
+        data = pd.read_csv(output_path)
+    else:
+        logger.info('Creating new output file from input data')
+        data = pd.read_csv(input_path)
+        data['response'] = pd.NA
 
     # TODO: Remove test case!
     data = data[:20]
 
-    # Initialize response column with NaN
-    data['response'] = pd.NA
-
-    logger.info('Iterate through the dataset and get attribute responses')
+    logger.info('Processing only rows without responses')
     data['response'] = data.apply(get_response_if_empty, axis=1)
 
     logger.info('Save the responses to the output file')
-    data.to_csv('../../data/output_data/output_data.csv', index=False)
+    data.to_csv(output_path, index=False)
 
 
 if __name__ == '__main__':
