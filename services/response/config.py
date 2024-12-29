@@ -24,6 +24,8 @@ class ResponseConfig(BaseSettings):
     system_prompt: str
     prompt_template: str
     prompt_template_color: str
+    is_test_run: bool
+    number_of_test_cases: int
 
 
 response_config = ResponseConfig()

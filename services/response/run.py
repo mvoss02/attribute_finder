@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
-from config import openai_config
+from config import openai_config, response_config
 from get_attribute import get_response
 from loguru import logger
 
@@ -40,22 +40,33 @@ def run():
     output_path = Path('../../data/output_data/output_data.csv')
     input_path = Path('../../data/final_data/final_combined_data.csv')
 
-    # Load or create output data
+    # Load full input data
+    logger.info('Loading input data')
+    data = pd.read_csv(input_path)
+    data['response'] = pd.NA
+
+    # Merge existing responses if available
     if output_path.exists():
-        logger.info('Loading existing output file')
-        data = pd.read_csv(output_path)
+        logger.info('Loading and merging existing responses')
+        existing_data = pd.read_csv(output_path)
+        data.loc[data.index.isin(existing_data.index), 'response'] = existing_data[
+            'response'
+        ]
+
+    # Create explicit copy for processing
+    if response_config.is_test_run:
+        process_indices = data.index[: response_config.number_of_test_cases]
     else:
-        logger.info('Creating new output file from input data')
-        data = pd.read_csv(input_path)
-        data['response'] = pd.NA
+        process_indices = data.index
 
-    # TODO: Remove test case!
-    data = data[:20]
+    # Process rows without responses
+    logger.info('Processing rows without responses')
+    for idx in process_indices:
+        if pd.isna(data.loc[idx, 'response']):
+            row = data.loc[idx]
+            data.loc[idx, 'response'] = get_response_if_empty(row)
 
-    logger.info('Processing only rows without responses')
-    data['response'] = data.apply(get_response_if_empty, axis=1)
-
-    logger.info('Save the responses to the output file')
+    logger.info('Saving complete dataset')
     data.to_csv(output_path, index=False)
 
 
