@@ -15,5 +15,4 @@ run-with-ingest-data:
 
 run-dev-img:
 	@echo "Testing the image conversion..."
-	uv run python image_preprocessing.py
-	
+	uv run python image_preprocessing.py	
