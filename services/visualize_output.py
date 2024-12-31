@@ -5,73 +5,87 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 import requests
+from loguru import logger
 from PIL import Image
-
-# Read in data which has been processed by the response service
-response_data = pd.read_csv('../data/output_data/output_data.csv', low_memory=False)
-response_data = response_data.loc[~response_data['response'].isna()]
 
 
 def visualize_by_attribute(df, num_samples=4):
+    base_dir = Path('../data/visuals')
+
     # Group by attribute
     grouped = df.groupby('Attribut Id')
 
     for attr_id, group in grouped:
-        try:
-            # Add main title with options
-            options = group['Identifier'].unique()
+        # Create attribute directory
+        attr_dir = base_dir / attr_id
+        attr_dir.mkdir(parents=True, exist_ok=True)
 
-            if attr_id == 'farbe':
-                plt.suptitle(f'Attribute: {attr_id}', fontsize=14, y=0.99)
-            else:
-                plt.suptitle(
-                    f"Attribute: {attr_id}\n Options: {', '.join(options)}",
-                    fontsize=14,
-                    y=0.99,
+        # Sample products
+        samples = group.sample(n=min(num_samples, len(group)))
+
+        logger.info(f'Processing attribute {attr_id} with {len(samples)} samples')
+
+        for _, row in samples.iterrows():
+            try:
+                # Create single figure
+                plt.figure(figsize=(10, 12))
+
+                # Add attribute info
+                if attr_id == 'farbe':
+                    plt.suptitle(f'Attribute: {attr_id}', fontsize=14, y=0.98)
+                else:
+                    options = group['Identifier'].unique()
+                    plt.suptitle(
+                        f"Attribute: {attr_id}\nOptions: {', '.join(options)}",
+                        fontsize=14,
+                        y=0.98,
+                    )
+
+                # Display image
+                response = requests.get(row['Bild_URL_1'])
+                img = Image.open(io.BytesIO(response.content))
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+
+                plt.imshow(img)
+                plt.axis('off')
+
+                # Add metadata in two parts
+                metadata_basic = (
+                    f"Marke: {row['Labelgruppe_norm']} | "
+                    f"Geschlecht: {row['Geschlecht']} | "
+                    f"ID: {row['LiefArtNr']} | "
+                    f"Farbe: {row['LiefFarbe']}\n"
+                    f"Kategorie: {row['WgrBez']}"
                 )
 
-            # Select random samples
-            samples = group.sample(n=min(num_samples, len(group)))
+                llm_response = textwrap.fill(str(row['response']), width=60)
 
-            for idx, (_, row) in enumerate(samples.iterrows(), 1):
-                try:
-                    # Create subplot
-                    plt.subplot(num_samples, 1, idx)
+                plt.title(metadata_basic, loc='left', pad=20, fontsize=10)
 
-                    # Download and display image
-                    response = requests.get(row['Bild_URL_1'])
-                    img = Image.open(io.BytesIO(response.content))
-                    if img.mode != 'RGB':
-                        img = img.convert('RGB')
+                # Center the LLM response text below image
+                plt.figtext(
+                    0.5, 0.22, 'LLM Response:', fontsize=14, weight='bold', ha='center'
+                )
 
-                    plt.imshow(img)
-                    plt.axis('off')
+                plt.figtext(0.5, 0.20, llm_response, fontsize=12, ha='center', va='top')
 
-                    # Add metadata
-                    metadata = (
-                        f"Marke: {row['Labelgruppe_norm']} | "
-                        f"Geschlecht: {row['Geschlecht']} | "
-                        f"LiefArtNr: {row['LiefArtNr']} | "
-                        f"Farbe: {row['LiefFarbe']}\n"
-                        f"WGR: {row['WgrBez']}\n"
-                        f"Attribut (LLM): {textwrap.fill(str(row['response']), width=80)}"
-                    )
-                    plt.title(metadata, loc='left', pad=20, fontsize=10)
+                # Make room for text below image
+                plt.subplots_adjust(bottom=0.3)
 
-                except Exception as e:
-                    print(f"Error processing image {row['LiefArtNr']}: {e}")
+                # Save individual file
+                plt.savefig(
+                    attr_dir / f'product_{row["LiefArtNr"]}.png', bbox_inches='tight'
+                )
+                plt.close()
 
-            plt.tight_layout(rect=[0, 0, 1, 0.98])
-
-            # Save to attribute-specific file
-            output_dir = Path('../data/visuals')
-            output_dir.mkdir(parents=True, exist_ok=True)
-            plt.savefig(output_dir / f'samples_{attr_id}.png', bbox_inches='tight')
-            plt.close()
-
-        except Exception as e:
-            print(f'Error processing attribute {attr_id}: {e}')
+            except Exception as e:
+                print(f"Error processing product {row['LiefArtNr']}: {e}")
 
 
-# Usage
-visualize_by_attribute(response_data, num_samples=4)
+if __name__ == '__main__':
+    # Read in data which has been processed by the response service
+    response_data = pd.read_csv('../data/output_data/output_data.csv', low_memory=False)
+    response_data = response_data.loc[~response_data['response'].isna()]
+
+    visualize_by_attribute(response_data, num_samples=300)

@@ -55,9 +55,17 @@ def run():
 
     # Create explicit copy for processing
     if response_config.is_test_run:
-        process_indices = data.index[: response_config.number_of_test_cases]
+        try:
+            # Handle case where sample size > available data
+            sample_size = min(response_config.number_of_test_cases, len(data))
+            process_indices = data.sample(n=sample_size).index
+            logger.info(f'Processing {sample_size} test samples')
+        except ValueError as e:
+            logger.error(f'Sampling error: {e}')
+            process_indices = data.index
     else:
         process_indices = data.index
+        logger.info(f'Processing all {len(process_indices)} samples')
 
     # Process rows without responses
     logger.info('Processing rows without responses')

@@ -45,7 +45,7 @@ def download_and_process_image(url: str, max_retries: int = 2) -> Optional[str]:
     for attempt in range(max_retries):
         try:
             # Download image with timeout
-            response = requests.get(url, timeout=10)
+            response = requests.get(url, timeout=5, verify=False)
             response.raise_for_status()
 
             # Load image and validate
