@@ -9,7 +9,18 @@ from loguru import logger
 from PIL import Image
 
 
-def visualize_by_attribute(df, num_samples=4):
+def visualize_by_attribute(df, num_samples=4) -> None:
+    """
+    Visualize a sample of products for each attribute in the dataset.
+
+    Args:
+        df (pd.DataFrame): The pandas dataframe which is being processed.
+        num_samples (int, optional): Number of samples to be considered per attribute. Defaults to 4.
+
+    Returns:
+        None
+    """
+
     base_dir = Path('../data/visuals')
 
     # Group by attribute

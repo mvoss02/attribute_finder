@@ -9,6 +9,18 @@ from PIL import Image
 
 
 def write_failed_image(product_id: int, supplier_colour: str, url: str) -> None:
+    """
+    Write the failed image URL to a file for later processing and analysis.
+
+    Args:
+        product_id (int): The id of the product.
+        supplier_colour (str): The colour specified by the supplier.
+        url (str): The URL to the image that failed.
+
+    Returns:
+        None
+    """
+
     logger.info(f'Writing failed image url to the failed_images.txt file: {url}')
     failed_dir = Path('../../data/failed_images')
     failed_dir.mkdir(parents=True, exist_ok=True)
