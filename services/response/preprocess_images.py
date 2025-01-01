@@ -39,7 +39,9 @@ def write_failed_image(product_id: int, supplier_colour: str, url: str) -> None:
         f.write(entry)
 
 
-def download_and_process_image(url: str, max_retries: int = 2) -> Optional[str]:
+def download_and_process_image(
+    url: str, max_retries: int = 2, verify_certificate: bool = True
+) -> Optional[str]:
     """
     Download and process an image from a URL, with retry logic and validation.
     Returns the processed image URL or None if failed.
@@ -47,6 +49,7 @@ def download_and_process_image(url: str, max_retries: int = 2) -> Optional[str]:
     Args:
         url (str): The URL of the image to download and process.
         max_retries (int, optional): The maximum number of retries. Defaults to 2.
+        verify_certificate (bool, optional): Whether to verify SSL certificates. Defaults to True.
 
     Returns:
         Optional[str]: The URL of the processed image or None if failed.
@@ -57,7 +60,7 @@ def download_and_process_image(url: str, max_retries: int = 2) -> Optional[str]:
     for attempt in range(max_retries):
         try:
             # Download image with timeout
-            response = requests.get(url, timeout=5, verify=False)
+            response = requests.get(url, timeout=5, verify=verify_certificate)
             response.raise_for_status()
 
             # Load image and validate

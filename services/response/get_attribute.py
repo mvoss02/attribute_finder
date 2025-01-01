@@ -52,7 +52,9 @@ def get_response(
         response: str
 
     # Process image first
-    processed_image_path = download_and_process_image(image_url)
+    processed_image_path = download_and_process_image(
+        image_url, verify_certificate=response_config.verify_certificate
+    )
     if not processed_image_path:
         logger.error(f'Failed to process image from URL: {image_url}')
         write_failed_image(product_id, supplier_colour, image_url)
@@ -62,6 +64,10 @@ def get_response(
         # Read the processed image
         with open(processed_image_path, 'rb') as image_file:
             base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+        logger.info(
+            f'Getting LLM Resposne from product {product_id} with image {image_url}'
+        )
 
         # chat.completions.create
         response = client.beta.chat.completions.parse(

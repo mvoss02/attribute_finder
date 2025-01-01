@@ -26,6 +26,7 @@ class ResponseConfig(BaseSettings):
     prompt_template_color: str
     is_test_run: bool
     number_of_test_cases: int
+    verify_certificate: bool
 
 
 response_config = ResponseConfig()
