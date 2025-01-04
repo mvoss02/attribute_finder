@@ -16,3 +16,9 @@ dependencies = [
     "requests>=2.32.3",
     "transformers>=4.47.1",
 ]
+
+[tool.setuptools]
+package-dir = {"" = "src"}  # This tells Python to look in src directory
+
+[tool.setuptools.packages.find]
+where = ["src"]  # This helps Python find your packages

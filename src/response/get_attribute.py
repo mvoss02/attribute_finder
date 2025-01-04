@@ -3,12 +3,14 @@ import json
 import os
 from typing import List, Optional
 
-import llm
 import pandas as pd
-from config import response_config
 from loguru import logger
-from preprocess_images import download_and_process_image, write_failed_image
 from pydantic import BaseModel
+
+from src.config import response_config
+
+from .instances import llm_client
+from .preprocess_images import download_and_process_image, write_failed_image
 
 
 def get_response(
@@ -45,7 +47,7 @@ def get_response(
         Optional[str]: The response from the LLM API.
     """
 
-    client = llm.llm_client.get_client()
+    client = llm_client.get_client()
 
     # Defining a class which allows for the response of the LLM to be of JSON format
     class Response(BaseModel):
@@ -72,7 +74,7 @@ def get_response(
         # chat.completions.create
         response = client.beta.chat.completions.parse(
             temperature=temperature,
-            model=llm.llm_client.model_name,
+            model=llm_client.model_name,
             max_tokens=max_tokens,
             messages=[
                 {'role': 'system', 'content': response_config.system_prompt},
@@ -126,6 +128,9 @@ def get_response(
 
         try:
             json_response = json.loads(response.choices[0].message.content)
+
+            logger.info(f'LLM Response: {json_response["response"]}')
+
             return json_response['response']
         except json.JSONDecodeError as e:
             logger.error(f'Failed to parse JSON response: {e}')

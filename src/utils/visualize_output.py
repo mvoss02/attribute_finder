@@ -9,19 +9,22 @@ from loguru import logger
 from PIL import Image
 
 
-def visualize_by_attribute(df, num_samples=4) -> None:
+def visualize_by_attribute(
+    df: pd.DataFrame, base_dir_str: str, num_samples: int = 4
+) -> None:
     """
     Visualize a sample of products for each attribute in the dataset.
 
     Args:
         df (pd.DataFrame): The pandas dataframe which is being processed.
+        base_dir (str): The base directory where the images will be saved.
         num_samples (int, optional): Number of samples to be considered per attribute. Defaults to 4.
 
     Returns:
         None
     """
 
-    base_dir = Path('../data/visuals')
+    base_dir = Path(base_dir_str)
 
     # Group by attribute
     grouped = df.groupby('Attribut Id')
@@ -96,7 +99,7 @@ def visualize_by_attribute(df, num_samples=4) -> None:
 
 if __name__ == '__main__':
     # Read in data which has been processed by the response service
-    response_data = pd.read_csv('../data/output_data/output_data.csv', low_memory=False)
+    response_data = pd.read_csv('data/output_data/output_data.csv', low_memory=False)
     response_data = response_data.loc[~response_data['response'].isna()]
 
-    visualize_by_attribute(response_data, num_samples=300)
+    visualize_by_attribute(response_data, base_dir_str='data/visuals', num_samples=3)

@@ -1,6 +1,5 @@
 from typing import Optional
 
-from config import openai_config
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
@@ -19,7 +18,3 @@ class LLM(BaseModel):
 
     def get_client(self):
         return self.client
-
-
-openai_config = openai_config
-llm_client = LLM(api_key=openai_config.api_key, model_name=openai_config.model_name)

@@ -1,5 +1,10 @@
 # Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+
+# Install system dependencies in a single layer and clean up
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends make && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install the project into `/app`
 WORKDIR /app
@@ -29,4 +34,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 ENTRYPOINT []
 
 # Run our service
-CMD ["sh", "-c", "cd services/response/ && uv run run.py"]
+CMD ["make", "run-response-model"]

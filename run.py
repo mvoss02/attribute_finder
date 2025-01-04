@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import pandas as pd
-from config import openai_config, response_config
-from get_attribute import get_response
 from loguru import logger
+
+from src.response import get_response, openai_config, response_config
 
 
 def get_response_if_empty(row):
@@ -37,18 +37,18 @@ def get_response_if_empty(row):
 
 def run():
     logger.info('Hello from the attribute finder service!')
-    output_path = Path('../../data/output_data/output_data.csv')
-    input_path = Path('../../data/final_data/final_combined_data.csv')
+    output_path = Path('data/output_data/output_data.csv')
+    input_path = Path('data/final_data/final_combined_data.csv')
 
     # Load full input data
     logger.info('Loading input data')
-    data = pd.read_csv(input_path)
+    data = pd.read_csv(input_path, low_memory=False)
     data['response'] = pd.NA
 
     # Merge existing responses if available
     if output_path.exists():
         logger.info('Loading and merging existing responses')
-        existing_data = pd.read_csv(output_path)
+        existing_data = pd.read_csv(output_path, low_memory=False)
         data.loc[data.index.isin(existing_data.index), 'response'] = existing_data[
             'response'
         ]

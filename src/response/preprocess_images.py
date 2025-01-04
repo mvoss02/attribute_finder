@@ -76,10 +76,7 @@ def download_and_process_image(
                 image.thumbnail(max_size)
 
             # Save to temp file
-            temp_dir = Path('temp_images')
-            temp_dir.mkdir(exist_ok=True)
-
-            temp_path = temp_dir / f'processed_{int(time.time())}_{attempt}.jpg'
+            temp_path = f'processed_{int(time.time())}_{attempt}.jpg'
             image.save(temp_path, 'JPEG', quality=85)
 
             return str(temp_path)
