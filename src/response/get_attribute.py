@@ -8,9 +8,11 @@ from loguru import logger
 from pydantic import BaseModel
 
 from src.config import response_config
-
-from .instances import llm_client
-from .preprocess_images import download_and_process_image, write_failed_image
+from src.response.instances import llm_client
+from src.response.preprocess_images import (
+    download_and_process_image,
+    write_failed_image,
+)
 
 
 def get_response(
