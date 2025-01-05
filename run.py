@@ -3,7 +3,8 @@ from pathlib import Path
 import pandas as pd
 from loguru import logger
 
-from src.response import get_response, openai_config, response_config
+from config.config import openai_config, response_config
+from response.get_attribute import get_response
 
 
 def get_response_if_empty(row):

@@ -3,13 +3,12 @@ import json
 import os
 from typing import List, Optional
 
-import pandas as pd
 from loguru import logger
 from pydantic import BaseModel
 
-from src.config import response_config
-from src.response.instances import llm_client
-from src.response.preprocess_images import (
+from config import response_config
+from response.instances import llm_client
+from response.preprocess_images import (
     download_and_process_image,
     write_failed_image,
 )
@@ -152,25 +151,53 @@ def get_response(
 
 
 if __name__ == '__main__':
-    # Read in data
-    data = pd.read_csv(
-        '../../data/final_data/final_combined_data.csv', low_memory=False
+    logger.info('Starting LLM response directly from __main__ in the source file')
+
+    # Simple test cases for colour and other attribute
+    test_result_colour = get_response(
+        product_id=80416852,
+        supplier_colour='8426 Nightshadow Blu',
+        temperature=0.0,
+        categories=[None],
+        product_category='Damen / D-Jacken',
+        brand='amberundjune',
+        target_group='D',
+        image_url='https://assets.bettybarclay.com/media/image/c491ec3dd5db9f9fc8b350b627aa74ee80416852-8426-f.jpg',
+        is_color=True,
     )
 
-    # Pick n random observations
-    random_sample = data.sample(n=3)
+    logger.debug(f'Test result colour for product_id 80416852: {test_result_colour}')
 
-    for idx, row in random_sample.iterrows():
-        result = get_response(
-            product_id=row['LiefArtNr'],
-            supplier_colour=row['LiefFarbe'],
-            temperature=0.0,
-            categories=row['Identifier'],
-            product_category=row['WgrBez'],
-            brand=row['Labelgruppe_norm'],
-            target_group=row['Geschlecht'],
-            image_url=row['Bild_URL_1'],
-            is_color=True if row['Attribut Id'] == 'farbe' else False,
-        )
-        if result is None:
-            logger.warning(f'Failed to process row {idx}')
+    # Simple test cases for colour and other attribute
+    test_result = get_response(
+        product_id=80416852,
+        supplier_colour='8426 Nightshadow Blu',
+        temperature=0.0,
+        categories=[
+            'turtleneck',
+            'uBoot',
+            'envelope',
+            'troyer',
+            'henley',
+            'rollkragen',
+            'kapuze',
+            'rundhals',
+            'karree',
+            'volant',
+            'aufliegend',
+            'stehkragen',
+            'vNeck',
+            'schulterfrei',
+            'rueckenausschnitt',
+            'wasserfall',
+            'offen',
+            'reversekragen',
+        ],
+        product_category='Damen / D-Jacken',
+        brand='amberundjune',
+        target_group='D',
+        image_url='https://assets.bettybarclay.com/media/image/c491ec3dd5db9f9fc8b350b627aa74ee80416852-8426-f.jpg',
+        is_color=False,
+    )
+
+    logger.debug(f'Test result for product_id 80416852: {test_result}')

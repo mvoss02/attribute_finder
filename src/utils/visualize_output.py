@@ -98,8 +98,12 @@ def visualize_by_attribute(
 
 
 if __name__ == '__main__':
+    logger.info('Visualizing output data directly from __main__')
+
     # Read in data which has been processed by the response service
-    response_data = pd.read_csv('data/output_data/output_data.csv', low_memory=False)
+    response_data = pd.read_csv(
+        '../../data/output_data/output_data.csv', low_memory=False
+    )
     response_data = response_data.loc[~response_data['response'].isna()]
 
-    visualize_by_attribute(response_data, base_dir_str='data/visuals', num_samples=3)
+    visualize_by_attribute(response_data, base_dir_str='data/visuals', num_samples=1)

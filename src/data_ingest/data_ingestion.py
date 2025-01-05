@@ -75,4 +75,5 @@ def process_data() -> None:
 
 
 if __name__ == '__main__':
+    logger.info('Starting LLM data ingestion directly from __main__ in the source file')
     process_data()
