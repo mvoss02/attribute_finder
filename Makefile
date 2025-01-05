@@ -14,14 +14,28 @@ run-with-docker: build
 clean:
 	docker rmi attribute-finder
 
+# Ingest data
 ingest-data:
 	@echo "Ingesting the data, in order to create a final dataset..."
 	uv run python -m src.data_ingest.data_ingestion
 
+# Run model response
 run-response-model:
 	@echo "Running the response model..."
 	uv run python run.py
 
+run-response-model-dev:
+	@echo "Running the response model in development mode..."
+	uv run python -m response
+
+# Visualize output
 visualize-output:
 	@echo "Visualizing the output..."
 	uv run python -m src.utils.visualize_output
+
+# Bash script to install local packages
+make-install-local-packages-executable:
+	chmod +x install_local_packages.sh
+
+install-local-packages: make-install-local-packages-executable
+	./install_local_packages.sh
