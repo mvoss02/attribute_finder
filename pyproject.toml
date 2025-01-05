@@ -1,7 +1,7 @@
 [project]
 name = "attribute-finder"
 version = "0.1.0"
-description = "Add your description here"
+description = "A service which finds pre-specified attributes based on product images using LLMs"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -17,8 +17,12 @@ dependencies = [
     "transformers>=4.47.1",
 ]
 
-[tool.setuptools]
-package-dir = {"" = "src"}  # This tells Python to look in src directory
+# Optional dependencies specific to each module
+[project.optional-dependencies]
+response = []
+data_ingest = []
+utils = []
 
-[tool.setuptools.packages.find]
-where = ["src"]  # This helps Python find your packages
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["response", "data_ingest", "utils", "config"]  # Explicitly list packages
