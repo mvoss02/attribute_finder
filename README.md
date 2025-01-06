@@ -41,12 +41,14 @@ make run-response-model-dev
 
 ## 📁 Project Structure
 
+```
 attribute_finder/
 ├── src/ # Source code
 │ ├── response/ # Response generation service
 │ └── data_ingest/ # Data ingestion service
 ├── services/ # Service configurations
 ├── data/ # Data storage
+```
 
 ## 🤝 Support
 
