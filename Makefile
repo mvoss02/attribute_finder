@@ -31,7 +31,7 @@ run-response-model-dev:
 # Visualize output
 visualize-output:
 	@echo "Visualizing the output..."
-	uv run python -m src.utils.visualize_output
+	uv run python -m visualize
 
 # Bash script to install local packages
 make-install-local-packages-executable:

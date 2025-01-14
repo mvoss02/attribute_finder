@@ -26,4 +26,4 @@ utils = []
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["response", "data_ingest", "utils", "config"]  # Explicitly list packages
+packages = ["response", "data_ingest", "visualize", "config"]  # Explicitly list packages

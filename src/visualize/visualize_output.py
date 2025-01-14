@@ -94,16 +94,24 @@ def visualize_by_attribute(
                 plt.close()
 
             except Exception as e:
-                print(f"Error processing product {row['LiefArtNr']}: {e}")
+                logger.error(f"Error processing product {row['LiefArtNr']}: {e}")
 
 
 if __name__ == '__main__':
     logger.info('Visualizing output data directly from __main__')
 
-    # Read in data which has been processed by the response service
-    response_data = pd.read_csv(
-        '../../data/output_data/output_data.csv', low_memory=False
+    # Using Path for platform-independent path handling
+    response_data_path = (
+        Path(__file__).parent.parent.parent / 'data' / 'output_data' / 'output_data.csv'
     )
+
+    output_path = Path(__file__).parent.parent.parent / 'data' / 'visuals'
+
+    # Read in data
+    response_data = pd.read_csv(response_data_path, low_memory=False)
+
+    # Filter out rows without responses
     response_data = response_data.loc[~response_data['response'].isna()]
 
-    visualize_by_attribute(response_data, base_dir_str='data/visuals', num_samples=1)
+    # Visualize a sample of products for each attribute in the dataset
+    visualize_by_attribute(response_data, base_dir_str=output_path, num_samples=1)
