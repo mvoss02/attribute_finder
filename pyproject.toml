@@ -1,0 +1,30 @@
+[project]
+name = "attribut-finder-pim"
+version = "0.1.0"
+description = "A service which finds pre-specified attributes based on product images using LLMs"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "asyncio>=3.4.3",
+    "backoff>=2.2.1",
+    "loguru>=0.7.3",
+    "matplotlib>=3.10.0",
+    "openai>=1.60.2",
+    "pandas>=2.2.3",
+    "polars>=1.20.0",
+    "pyarrow>=19.0.1",
+    "pydantic>=2.10.5",
+    "pydantic-settings>=2.7.1",
+    "requests>=2.32.3",
+    "uvicorn>=0.34.2",
+]
+
+# Optional dependencies specific to each module
+[project.optional-dependencies]
+response = []
+data_loading = []
+utils = []
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["response", "data_preprocessing", "visualize", "config"]  # Explicitly list packages
