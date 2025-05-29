@@ -25,3 +25,4 @@ data/
 
 # API Key
 **/openai_credentials.env
+**/ftp.settings.env
