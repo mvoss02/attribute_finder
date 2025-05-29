@@ -3,7 +3,7 @@ from typing import Optional, Literal
 import openai
 from pydantic import BaseModel, Field
 
-from config import openai_config
+from config.config import openai_config
 
 
 class LLM(BaseModel):

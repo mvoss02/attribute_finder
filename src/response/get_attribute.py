@@ -9,7 +9,7 @@ import asyncio
 import backoff
 import openai
 
-from config import response_config, openai_config
+from config.config import response_config, openai_config
 from response.llm import llm_client
 from response.preprocess_images import (
     download_and_process_image,
@@ -48,10 +48,11 @@ async def get_response(
     product_id: int,
     image_urls: List[str],
     attribute_description: str = None,
+    attribute_orientation: str = None,
     product_category: str = '',
     target_group: str = '',
     supplier_colour: Optional[str] = None,
-    possible_options: Optional[List[str]] = None
+    possible_options: Optional[dict] = None
 ) -> json:
     """
     Get response from the LLM API. It should pick the correct attribute of the given product.
@@ -95,6 +96,7 @@ async def get_response(
                     'text': response_config.prompt_template_attribute.format(
                                     attribute_id=attribute_id,
                                     attribute_description=attribute_description,
+                                    attribute_orientation=attribute_orientation,
                                     possible_options=possible_options,
                                     product_category=product_category,
                                     target_group=target_group,

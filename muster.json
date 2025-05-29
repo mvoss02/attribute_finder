@@ -1,0 +1,63 @@
+[
+  {
+    "ProduktID": "",
+    "FarbID": "",
+    "LiefArtNrBer": "",
+    "Geschlecht": "",
+    "Hauptbild": "Image URL",
+    "Freisteller Back": "Image URL",
+    "Modellbild": "Image URL",
+    "Klassifikation": [
+      {
+        "Identifier": "11-02-01-14-0020",
+        "Bezeichnung": "D-Hosen / D-Freizeithosen"
+      },
+      {
+        "Identifier": "Kategorie Identifier",
+        "Bezeichnung": "Pfad der Kategorie Bezeichnungen"
+      }
+    ],
+    "Klassifikations-Attribute": [
+      {
+        "Identifier": "Attribut-Identifier",
+        "Bezeichner": "Attribut-Bezeichner",
+        "Typ": "Attribut-Typ",
+        "Ausgewaehlter Attributwert (Result)": "Wert-Identifier",
+        "Beschreibung": "Beschreibt das Attribut",
+        "Orientierung": "",
+        "Attributwerte": [
+          {
+            "Identifier": "Wert-Identifier",
+            "Bezeichner": "Wert-Bezeichner",
+            "Beschreibung": "Wert-Beschreibung"
+          },
+          {
+            "Identifier": "Wert-Identifier",
+            "Bezeichner": "Wert-Bezeichner",
+            "Beschreibung": "Wert-Beschreibung"
+          }
+        ]
+      },
+      {
+        "Identifier": "taschenart",
+        "Bezeichner": "Taschenart",
+        "Typ": "Wertemenge, mehrfach",
+        "Ausgewaehlter Attributwert (Result)": "handtasche",
+        "Beschreibung": "Beschreibt den VerwendungsZweck der Tasche",
+        "Orientierung": "",
+        "Attributwerte": [
+          {
+            "Identifier": "handtasche",
+            "Bezeichner": "Handtasche",
+            "Beschreibung": "Wird in der Hand getragen oder über dem Arm"
+          },
+          {
+            "Identifier": "bauchtasche",
+            "Bezeichner": "Bauchtasche",
+            "Beschreibung": "Wird in um den getragen"
+          }
+        ]
+      }
+    ]
+  }
+]
