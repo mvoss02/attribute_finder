@@ -7,10 +7,12 @@ requires-python = ">=3.11"
 dependencies = [
     "asyncio>=3.4.3",
     "backoff>=2.2.1",
+    "config",
     "loguru>=0.7.3",
     "matplotlib>=3.10.0",
     "openai>=1.60.2",
     "pandas>=2.2.3",
+    "paramiko>=3.5.1",
     "polars>=1.20.0",
     "pyarrow>=19.0.1",
     "pydantic>=2.10.5",
@@ -27,4 +29,10 @@ utils = []
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["response", "data_preprocessing", "visualize", "config"]  # Explicitly list packages
+packages = ["response", "data_preprocessing", "visualize"]  # Explicitly list packages
+
+[tool.uv.workspace]
+members = ["config"]
+
+[tool.uv.sources]
+config = { workspace = true }

@@ -67,3 +67,25 @@ class DataConfig(BaseSettings):
 
 
 data_config = DataConfig()
+
+
+class FTPConfig():
+    """
+    Configuration for the data ingestion from the FTP Server.
+    """
+    
+    model_config = SettingsConfigDict(
+        env_file=CONFIG_DIR / 'ftp.settings.env', env_file_encoding='utf-8'
+    )
+    
+    host_address_integ: str
+    host_address_prod: str
+    port: int
+    username: str
+    integ_password: str
+    prod_password: str
+    integ_or_prod: Literal['integ', 'prod'] # Using 'prod' (production) or 'integ' (integration/development) system
+    local_save_directory: str
+
+
+ftp_config = FTPConfig()
