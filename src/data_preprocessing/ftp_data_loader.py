@@ -20,8 +20,6 @@ def load_json_from_ftp():
         # Automatically add host key
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         
-        print('PASSWORD:', password)
-
         # Connect to the server
         client.connect(
             hostname=host_address,
@@ -81,6 +79,9 @@ def load_json_from_ftp():
 
             else:
                 logger.warning(f"Skipping '{filename}' as it is not a .json file.")
+    
+    except Exception as e:
+        logger.error(f"Error retrieving. Error: {e}")
                 
     finally:
         # Close SFTP connection and transport

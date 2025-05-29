@@ -53,14 +53,9 @@ class DataConfig(BaseSettings):
     )
 
     raw_data_path: str
-    output_data_path: str
-    local_data_path: str
-    attributes_data_path: str
-    api_url: str
     number_of_articles: int
     number_of_runs: int
     get_already_processed_articles: bool
-    data_source: Literal['local', 'api']
 
 
 data_config = DataConfig()

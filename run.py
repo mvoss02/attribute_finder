@@ -1,9 +1,11 @@
 from loguru import logger
 
-from data_preprocessing import json_article_loader, ftp_data_loader
+from data_preprocessing import json_article_loader, ftp_data_loader, ftp_data_post
+from response.preprocess_images import write_failed_image
 from response import get_attribute
 from config.config import data_config
 import asyncio
+import os
 
 
 async def _process_article(article: dict) -> dict:
@@ -21,7 +23,8 @@ async def _process_article(article: dict) -> dict:
     image_urls = [url for url in [article.get('Hauptbild'), article.get('Freisteller Back'), article.get('Modellbild')] if url]
     product_category = article.get('Klassifikation', [{}])[0]['Bezeichnung']
     target_group = article.get('Geschlecht')
-
+    supplier_color_id = article.get('FarbID', None)
+    
     for attribut in article.get('Klassifikations-Attribute', []):
         logger.info(f"Analysing article: {product_id} and the corresponding attribute is: {attribut.get('Bezeichner')}")
         
@@ -38,12 +41,12 @@ async def _process_article(article: dict) -> dict:
                 product_id=product_id, # The proeduct id
                 image_urls=image_urls, # The image urls - there can be 1-3 images being supplied to us by Novomind
                 target_group=target_group, # The target group - men, women, children
-                product_category=product_category, # The short description of the product categor (e.g. "D-Hosen / D-Freizeithosen")
+                product_category=product_category, # The short description of the product category (e.g. "D-Hosen / D-Freizeithosen")
                 supplier_colour=farb_id if attribut.get("Identifier") == "farbe" else None, # The supplier's color id - Is only supplid if we want to analyze the color
                 possible_options=possible_outcomes_description if attribut.get("Identifier") != "farbe" else None, # Dictioanry of attribute:description
             )
         else:
-            # TODO: write to failed images with reason - either image could not be downloaded or no image urls
+            write_failed_image(product_id=product_id, supplier_colour=supplier_color_id, url=image_urls)
             logger.error(f'No image urls where supplied for the following product id: {product_id}')
         
         # Log any failed responses here if needed
@@ -58,26 +61,48 @@ async def main():
     ftp_data_loader.load_json_from_ftp()
         
     # Step 2: Create Article Reader Object and iterate over each article individually
-    # article_reader = json_article_loader.ArticleLoaderFromJson(json_dir_path=data_config.raw_data_path)
+    article_reader = json_article_loader.ArticleLoaderFromJson(json_dir_path=data_config.raw_data_path)
     
-    # for file_name in article_reader.article_files:
-    #     logger.info(f'This is article file: {file_name}')
+    # logger.debug(f'Here are the files we read in: {article_reader.article_files}')
+    
+    list_article_filenames = article_reader.article_files
+    if len(list_article_filenames) > 0:
+        for file_name in article_reader.article_files:
+            logger.info(f'This is article file: {file_name}')
+            
+            # Step 3: Read raw article data
+            logger.info("Getting article and attribute data")
+            article = article_reader.load_article_data(article_file_name=file_name)
+            # logger.debug(f"This is the current article: {article}")
+
+            # Step 4: Send full article dict to process each attribute
+            # _ = await _process_article(article=article)
+            # TODO: Edit the json directly
+
+            # Step 5: Posting data to FTP
+            logger.info('Posting data to the FTP Server')
+            ftp_data_post.post_json_to_ftp()
+            logger.info(f"Finished posting article (article id: {article['ProduktID']}) to FTP")
         
-    #     # Step 3: Read raw article data
-    #     logger.info("Getting article and attribute data")
-    #     article = article_reader.load_article_data(article_file_name=file_name)
-    #     # logger.debug(f"This is the current article: {article}")
+        # Step 6: Delete artcile from ./data/
+        logger.info(f'Deleting all the json from {data_config.raw_data_path}')
+        
+        if not os.path.exists(data_config.raw_data_path):
+            logger.info(f"Directory '{data_config.raw_data_path}' does not exist")
+        else:
+            for filename in os.listdir(data_config.raw_data_path):
+                file_path = os.path.join(data_config.raw_data_path, filename)
+                try:
+                    if os.path.isfile(file_path):  # Ensure it's a file, not a subdirectory
+                        os.remove(file_path)
+                        logger.info(f"Deleted: {file_path}")
+                except Exception as e:
+                    logger.info(f"Error deleting {file_path}: {e}")
+        
+        logger.info('Done processing articles')
 
-    #     # Step 4: Send full article dict to process each attribute
-    #     article_with_responses = await _process_article(article=article)
-
-    #     # Step 5: Posting data to FTP
-    #     # TODO: Implement sending data back to FTP
-    #     # post_data.post_articles_to_db(api_url=data_config.api_url, output_data_path=data_config.output_data_path)
-
-    #     logger.info(f"Finished posting article (article id: {article['ProduktID']}) to FTP")
-    
-    logger.info('Done processing articles')
+    else:
+        logger.warning(f'No article file paths were found at {data_config.raw_data_path}')
 
 if __name__ == '__main__':
     asyncio.run(main())
