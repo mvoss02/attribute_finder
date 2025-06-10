@@ -1,12 +1,13 @@
 .PHONY: all build clean test
 
+# TAG for Docker image version  (defaults to latest)
+TAG ?= latest
+
 # Build Docker image (locally, for debugging)
-build:
-	docker build -f Dockerfile -t attribute-finder .
+build-for-dev:
+	docker build -f Dockerfile -t attribute-finder:$(TAG) .
 
 # Build Docker image (for container registry, production)
-# TAG defaults to latest, if not provided otherwise
-TAG ?= latest
 build-for-cr:
 	docker buildx build --platform linux/amd64 -f Dockerfile -t pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/samples/attribute-finder:$(TAG) .
 
@@ -14,10 +15,10 @@ push-to-cr:
 	docker push pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/samples/attribute-finder:$(TAG)
 
 # Run container with mounted data
-run-with-docker: build
+run-with-docker: build-for-dev
 	docker run -it \
 		-v $$(pwd)/data:/app/data \
-		attribute-finder
+		attribute-finder:$(TAG)
 
 # Clean up Docker resources
 clean:
