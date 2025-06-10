@@ -22,12 +22,7 @@ run-with-docker: build-for-dev
 
 # Clean up Docker resources
 clean:
-	docker rmi attribute-finder
-
-# Ingest data
-load-data:
-	@echo "Loading data from API and merging it with attributes..."
-	uv run python -m src.data_preprocessing
+	docker rmi attribute-finder:$(TAG)
 
 # Run model response
 run-response-model:
@@ -35,7 +30,7 @@ run-response-model:
 	uv run python run.py
 
 # Visualize output - currentlyt not working...
-visualize-output:
-	@echo "Visualizing the output..."
-	uv run python -m visualize
+# visualize-output:
+#	@echo "Visualizing the output..."
+#	uv run python -m visualize
 
