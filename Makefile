@@ -15,7 +15,7 @@ push-to-cr:
 	docker push pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/samples/attribute-finder:$(TAG)
 
 # Run container with mounted data
-run-with-docker: build-for-dev
+run-with-docker-dev: build-for-dev
 	docker run -it \
 		-v $$(pwd)/data:/app/data \
 		attribute-finder:$(TAG)
