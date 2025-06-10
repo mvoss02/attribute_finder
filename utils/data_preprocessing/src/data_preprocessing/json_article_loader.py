@@ -36,7 +36,31 @@ class ArticleLoaderFromJson:
         full_path = os.path.join(self.json_dir_path, article_file_name)
         with open(full_path, 'r', encoding='utf-8') as f:
             return json.load(f)
-    
+        
+    def save_article_as_json(self, file_path: str, article_file_name: str, processed_article: dict) -> None:
+        """
+        Save the processed article as json
+
+        Args:
+            file_path (str): the file path where the article should be stored
+            article_file_name (str): the file name
+            processed_article (dict): the dictioanry of the final article
+
+        Returns:
+            None
+        """
+        
+         # Step 1: Check if directory exists
+        if os.path.isdir(file_path):
+            
+            # Step 2: Save article at teh given file_path
+            with open(file_path + article_file_name, 'w', encoding='utf-8') as f:
+                json.dump(processed_article, f, indent=2, ensure_ascii=False)
+
+            logger.info(f'Successfully saved article at: {file_path}. The file name is {article_file_name}')
+        else:
+            raise ValueError("The provided directory path does not exist!")
+        
     @property
     def article_files(self) -> list:
         return self._article_files

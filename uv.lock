@@ -10,6 +10,7 @@ members = [
     "attribut-finder-pim",
     "config",
     "data-preprocessing",
+    "helper",
     "response",
 ]
 
@@ -54,6 +55,7 @@ dependencies = [
     { name = "backoff" },
     { name = "config" },
     { name = "data-preprocessing" },
+    { name = "helper" },
     { name = "loguru" },
     { name = "matplotlib" },
     { name = "openai" },
@@ -74,6 +76,7 @@ requires-dist = [
     { name = "backoff", specifier = ">=2.2.1" },
     { name = "config", editable = "config" },
     { name = "data-preprocessing", editable = "utils/data_preprocessing" },
+    { name = "helper", editable = "utils/helper" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "matplotlib", specifier = ">=3.10.0" },
     { name = "openai", specifier = ">=1.60.2" },
@@ -438,6 +441,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/01/ee/02a2c011bdab74c6f
 wheels = [
     { url = "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86", size = 37515 },
 ]
+
+[[package]]
+name = "helper"
+version = "0.1.0"
+source = { editable = "utils/helper" }
 
 [[package]]
 name = "httpcore"

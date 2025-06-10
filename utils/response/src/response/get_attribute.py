@@ -56,16 +56,16 @@ async def get_response(
 ) -> json:
     """
     Get response from the LLM API. It should pick the correct attribute of the given product.
-    This happens based on a supplied list of categories, the product category, brand, target group and an image of the product.
-    Several categories are tested, except of the colour. Colour will be assessed in another file.
+    This happens based on a supplied list of possible_options, the product category, brand, target group and an image of the product.
+    Several possible_options are tested, except of the colour. Colour will be assessed in another file.
     If is_color is set to True, the response will be for a colour (in terms of Hexcode).
 
     Args:
         attribute_id (str): The attribute ID corresponding to the URL.
         product_id (int): The product ID corresponding to the URL.
         supplier_colour (str): The colour of the product as provided by the supplier.
-        categories (List[str], optional): A list of categories to use for the response. Defaults to [].
-        categories (dict, optional): A dictionary of the ids (Wertemengen) and the descriptions.
+        possible_options (List[str], optional): A list of possible_options to use for the response. Defaults to [].
+        possible_options (dict, optional): A dictionary of the ids (Wertemengen) and the descriptions.
         product_category (str, optional): The product category to use for the response. Defaults to "".
         attribute_description (str, optional): A general description of the attribute itself.
         attribute_orientation (str, optional): Where the model should look in order to identify the attribute.

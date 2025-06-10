@@ -3,7 +3,7 @@ import io
 import os
 from loguru import logger
 
-from config.config import ftp_config
+from config.config import ftp_config, data_config
 
 
 def load_json_from_ftp():
@@ -61,10 +61,10 @@ def load_json_from_ftp():
                     file_content_buffer.seek(0)  # Go to the beginning of the stream
                     
                     # Create the local directory if it doesn't exist
-                    os.makedirs(ftp_config.local_save_directory, exist_ok=True)
+                    os.makedirs(data_config.raw_data_path, exist_ok=True)
 
                     # Define the full local path for saving the file
-                    local_file_path = os.path.join(ftp_config.local_save_directory, filename)
+                    local_file_path = os.path.join(data_config.raw_data_path, filename)
 
                     logger.info(f"Saving '{filename}' to '{local_file_path}'")
                     

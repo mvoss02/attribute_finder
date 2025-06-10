@@ -1,11 +1,13 @@
 import asyncio
 import os
+import time
 
 from loguru import logger
 
 from response import get_attribute, preprocess_images
 from config.config import data_config
 from data_preprocessing import ftp_data_loader, json_article_loader, ftp_data_post
+from helper import working_hours
 
 
 async def _process_article(article: dict) -> dict:
@@ -38,7 +40,7 @@ async def _process_article(article: dict) -> dict:
 
         # Get possible values and the corrsponding descriptions to these values
         possible_outcomes_description = {
-            item.get(["Identifier"]): item.get(["Bezeichner"])
+            item.get("Identifier"): item.get("Bezeichner")
             for item in attribut.get("Attributwerte")
         }
 
@@ -83,58 +85,98 @@ async def _process_article(article: dict) -> dict:
         ):
             logger.warning(f"Failed to process article: {product_id} and the corresponding attribute: {attribut.get('Identifier')}")
 
-    return article
+    return article 
 
 
-async def main():
-    logger.debug("THIS IS A TEST FOR THE DOCKER CONTAINER!")
+async def main(seconds_wait: str = 600):
+    # Define a counter which keeps track of the number of tries outside of working hours
+    tries_outside_working_hours = 0
     
-    # Step 1: Load data from the API and merge with attributes
-    ftp_data_loader.load_json_from_ftp()
+    logger.info(f'Checking whether we are operating during work hours/days... This is try number: {tries_outside_working_hours}')
+    
+    if working_hours.is_working_hours(timezone_str="Europe/Berlin"):
+        # Set the number of tries outside of workign hours back to 0
+        tries_outside_working_hours = 0
         
-    # Step 2: Create Article Reader Object and iterate over each article individually
-    article_reader = json_article_loader.ArticleLoaderFromJson(json_dir_path=data_config.raw_data_path)
-    
-    logger.debug(f'Here are the files we read in: {article_reader.article_files}')
-    
-    # list_article_filenames = article_reader.article_files
-    # if len(list_article_filenames) > 0:
-    #     for file_name in article_reader.article_files:
-    #         logger.info(f'This is article file: {file_name}')
+        # Step 1: Load data from the API and merge with attributes
+        # TODO: BRING BACK! ftp_data_loader.load_json_from_ftp()
             
-    #         # Step 3: Read raw article data
-    #         logger.info("Getting article and attribute data")
-    #         article = article_reader.load_article_data(article_file_name=file_name)
-    #         # logger.debug(f"This is the current article: {article}")
-
-    #         # Step 4: Send full article dict to process each attribute
-    #         # _ = await _process_article(article=article)
-    #         # TODO: Edit the json directly
-
-    #         # Step 5: Posting data to FTP
-    #         logger.info('Posting data to the FTP Server')
-    #         ftp_data_post.post_json_to_ftp()
-    #         logger.info(f"Finished posting article (article id: {article['ProduktID']}) to FTP")
+        # Step 2: Create Article Reader Object and iterate over each article individually
+        article_reader = json_article_loader.ArticleLoaderFromJson(json_dir_path=data_config.raw_data_path)
         
-    #     # Step 6: Delete artcile from ./data/
-    #     logger.info(f'Deleting all the json from {data_config.raw_data_path}')
+        logger.debug(f'Here are the files we read in: {article_reader.article_files}')
         
-    #     if not os.path.exists(data_config.raw_data_path):
-    #         logger.info(f"Directory '{data_config.raw_data_path}' does not exist")
-    #     else:
-    #         for filename in os.listdir(data_config.raw_data_path):
-    #             file_path = os.path.join(data_config.raw_data_path, filename)
-    #             try:
-    #                 if os.path.isfile(file_path):  # Ensure it's a file, not a subdirectory
-    #                     os.remove(file_path)
-    #                     logger.info(f"Deleted: {file_path}")
-    #             except Exception as e:
-    #                 logger.info(f"Error deleting {file_path}: {e}")
+        # Get a list of the article filenames that have been found on the FTP-Server an diterate through them (if any present)
+        number_of_idle_checks = 0 # Number of checks during work hours where no new data had been added
         
-    #     logger.info('Done processing articles')
+        list_article_filenames = article_reader.article_files
+        if len(list_article_filenames) > 0:
+            number_of_idle_checks = 0 # Back to 1
+            
+            for file_name in article_reader.article_files:
+                logger.info(f'This is article file: {file_name}')
+                
+                # Step 3: Read raw article data
+                logger.info("Getting article and attribute data")
+                article = article_reader.load_article_data(article_file_name=file_name)
+                # logger.debug(f"This is the current article: {article}")
 
-    # else:
-    #     logger.warning(f'No article file paths were found at {data_config.raw_data_path}')
+                # Step 4: Send full article dict to process each attribute and save as new JSON file
+                processed_article = await _process_article(article=article)  
+                
+                article_reader.save_article_as_json(file_path=data_config.output_data_path, article_file_name=file_name, processed_article=processed_article)
+                
+                breakpoint()
+
+                # Step 5: Posting data to "out" folder and delete data from "in" folder on FTP-Server
+                logger.info('Posting data to the FTP Server (to "out/" folder)')
+                # TODO: ftp_data_post.post_json_to_ftp()
+                logger.info(f'Finished posting article (article id: {article["ProduktID"]}) to FTP ("out/" folder)')
+            
+                logger.info('Deleting data from FTP Server (from "in/" folder)')
+                # TODO: Change ftp_data_post sich that we have one connection where we can delete and post
+                logger.info(f'Finished deleteing article (article id: {article["ProduktID"]}) from FTP ("in/" folder)')
+            
+            # Step 6: Delete artcile from ./data/in/ locally
+            logger.info(f'Deleting all the json from {data_config.raw_data_path}')
+            
+            if not os.path.exists(data_config.raw_data_path):
+                logger.info(f"Directory '{data_config.raw_data_path}' does not exist")
+            else:
+                for filename in os.listdir(data_config.raw_data_path):
+                    file_path = os.path.join(data_config.raw_data_path, filename)
+                    try:
+                        if os.path.isfile(file_path):  # Ensure it's a file, not a subdirectory
+                            os.remove(file_path)
+                            logger.info(f"Deleted: {file_path}")
+                    except Exception as e:
+                        logger.info(f"Error deleting {file_path}: {e}")
+            
+            # Step 7: Delete artcile from ./data/out/ locally
+            logger.info(f'Deleting all the json from {data_config.output_data_path}')
+            
+            if not os.path.exists(data_config.output_data_path):
+                logger.info(f"Directory '{data_config.output_data_path}' does not exist")
+            else:
+                for filename in os.listdir(data_config.output_data_path):
+                    file_path = os.path.join(data_config.output_data_path, filename)
+                    try:
+                        if os.path.isfile(file_path):  # Ensure it's a file, not a subdirectory
+                            os.remove(file_path)
+                            logger.info(f"Deleted: {file_path}")
+                    except Exception as e:
+                        logger.info(f"Error deleting {file_path}: {e}")
+            
+            logger.info('Done processing articles')
+
+        else: 
+            number_of_idle_checks += 1 # Add to the number of tries without new data during working hours
+            logger.warning(f'No article file paths were found at {data_config.raw_data_path}. This is check number {number_of_idle_checks} that resulted in no new data. Let us try in {seconds_wait * number_of_idle_checks} sec again!')
+            await asyncio.sleep(seconds_wait) # Allows container to be considered idle
+    else:
+        tries_outside_working_hours += 1 # Add to the number of tries outside of working hours
+        logger.warning(f"We are currently not operatig during work hours... Let us try in {seconds_wait * tries_outside_working_hours} sec again!")
+        await asyncio.sleep(seconds_wait * tries_outside_working_hours) # Allows container to be considered idle
 
 
 if __name__ == "__main__":
