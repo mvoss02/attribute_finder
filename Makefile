@@ -1,8 +1,17 @@
-.PHONY: build run-with-docker clean
+.PHONY: all build clean test
 
-# Build Docker image
+# Build Docker image (locally, for debugging)
 build:
 	docker build -f Dockerfile -t attribute-finder .
+
+# Build Docker image (for container registry, production)
+# TAG defaults to latest, if not provided otherwise
+TAG ?= latest
+build-for-cr:
+	docker buildx build --platform linux/amd64 -f Dockerfile -t pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/samples/attribute-finder:$(TAG) .
+
+push-to-cr:
+	docker push pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/samples/attribute-finder:$(TAG)
 
 # Run container with mounted data
 run-with-docker: build
@@ -24,18 +33,8 @@ run-response-model:
 	@echo "Running the response model..."
 	uv run python run.py
 
-run-response-model-dev:
-	@echo "Running the response model in development mode..."
-	uv run python -m response
-
-# Visualize output
+# Visualize output - currentlyt not working...
 visualize-output:
 	@echo "Visualizing the output..."
 	uv run python -m visualize
 
-# Bash script to install local packages
-make-install-local-packages-executable:
-	chmod +x install_local_packages.sh
-
-install-local-packages: make-install-local-packages-executable
-	./install_local_packages.sh
