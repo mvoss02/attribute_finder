@@ -53,6 +53,7 @@ class DataConfig(BaseSettings):
     )
 
     raw_data_path: str
+    output_data_path: str
     number_of_articles: int
     number_of_runs: int
     get_already_processed_articles: bool
@@ -77,7 +78,6 @@ class FTPConfig(BaseSettings):
     integ_password: str
     prod_password: str
     integ_or_prod: Literal['integ', 'prod'] # Using 'prod' (production) or 'integ' (integration/development) system
-    local_save_directory: str
 
 
 ftp_config = FTPConfig()
