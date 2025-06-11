@@ -56,6 +56,7 @@ class DataConfig(BaseSettings):
     number_of_articles: int
     number_of_runs: int
     get_already_processed_articles: bool
+    batch_size: int
 
 
 data_config = DataConfig()
