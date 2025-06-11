@@ -1,12 +1,17 @@
 # containerapp.yaml
 properties:
-  configuration:
-    triggers:
-      - type: schedule
-        schedule: "0 */6 * * *" # Every X hours (cron format)
-        name: "periodic-task"
   template:
     containers:
       - image: pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/samples/attribute-finder:latest
-        name: attribute_finder
-        command: ["python", "/app/run.py", "--scheduled-task"]
+        name: attribute-finder
+        command: ["python", "/app/run.py"]
+    scale:
+      minReplicas: 0
+      maxReplicas: 1
+      rules:
+        - name: "periodic-task"
+          type: "cron"
+          metadata:
+            timezone: "UTC"
+            start: "0 */6 * * *" # Every 6 hours
+            desiredReplicas: "1"
