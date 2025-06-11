@@ -146,7 +146,7 @@ async def get_response(
 
         except Exception as e:
             logger.error(f'API call failed: {str(e)}')
-            return None
+            raise Exception
         
         finally:
             # Clean up all saved image files
@@ -177,4 +177,4 @@ if __name__ == '__main__':
         
     #logger.debug(f'Test result for product_id 80416852: {test_result}')
     
-    print('--- %s seconds ---' % (time.time() - start_time))
+    logger.info('--- %s seconds ---' % (time.time() - start_time))

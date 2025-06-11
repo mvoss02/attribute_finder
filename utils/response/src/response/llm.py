@@ -26,10 +26,7 @@ class LLM(BaseModel):
         if self.provider == 'ollama' and base is None:
             base = 'http://localhost:11434/v1'
 
-        return openai.AsyncOpenAI(
-            api_key=self.api_key,
-            base_url=base
-         )
+        return openai.AsyncOpenAI(api_key=self.api_key)
 
     # Backwards-Kompatibilität
     @property

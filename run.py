@@ -99,7 +99,7 @@ async def main(seconds_wait: str = 600):
         tries_outside_working_hours = 0
         
         # Step 1: Load data from the API and merge with attributes
-        # TODO: BRING BACK! ftp_data_loader.load_json_from_ftp()
+        ftp_data_loader.load_json_from_ftp()
             
         # Step 2: Create Article Reader Object and iterate over each article individually
         article_reader = json_article_loader.ArticleLoaderFromJson(json_dir_path=data_config.raw_data_path)
@@ -113,7 +113,7 @@ async def main(seconds_wait: str = 600):
         if len(list_article_filenames) > 0:
             number_of_idle_checks = 0 # Back to 1
             
-            for file_name in article_reader.article_files:
+            for file_name in article_reader.article_files[:1]:
                 logger.info(f'This is article file: {file_name}')
                 
                 # Step 3: Read raw article data
@@ -125,12 +125,10 @@ async def main(seconds_wait: str = 600):
                 processed_article = await _process_article(article=article)  
                 
                 article_reader.save_article_as_json(file_path=data_config.output_data_path, article_file_name=file_name, processed_article=processed_article)
-                
-                breakpoint()
 
                 # Step 5: Posting data to "out" folder and delete data from "in" folder on FTP-Server
                 logger.info('Posting data to the FTP Server (to "out/" folder)')
-                # TODO: ftp_data_post.post_json_to_ftp()
+                ftp_data_post.post_json_to_ftp()
                 logger.info(f'Finished posting article (article id: {article["ProduktID"]}) to FTP ("out/" folder)')
             
                 logger.info('Deleting data from FTP Server (from "in/" folder)')
@@ -167,7 +165,7 @@ async def main(seconds_wait: str = 600):
                     except Exception as e:
                         logger.info(f"Error deleting {file_path}: {e}")
             
-            logger.info('Done processing articles')
+            logger.info(f'Done processing {len(article_reader.article_files)} articles')
 
         else: 
             number_of_idle_checks += 1 # Add to the number of tries without new data during working hours
