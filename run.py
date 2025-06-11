@@ -113,7 +113,7 @@ async def main(seconds_wait: str = 600):
         if len(list_article_filenames) > 0:
             number_of_idle_checks = 0 # Back to 1
             
-            for file_name in article_reader.article_files[:1]:
+            for file_name in article_reader.article_files:
                 logger.info(f'This is article file: {file_name}')
                 
                 # Step 3: Read raw article data
