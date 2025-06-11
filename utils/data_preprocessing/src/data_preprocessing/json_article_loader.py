@@ -11,17 +11,17 @@ class ArticleLoaderFromJson:
             json_dir_path: Path to a JSON dir containing the articles
         """
         self.json_dir_path = json_dir_path
-        
-        # Step 1: Check if directory exists
-        if os.path.isdir(json_dir_path):
-            
-            # Step 2: List all files in the directory (excluding subdirectories)
-            self._article_files = [f for f in os.listdir(json_dir_path)
-                if os.path.isfile(os.path.join(json_dir_path, f))]
 
-            logger.info(f'Successfully imported article files from this path: {json_dir_path}')
-        else:
-            raise ValueError("The provided directory path does not exist!")
+        # Step 1: Check if directory exists, create if not
+        if not os.path.isdir(json_dir_path):
+            logger.info(f'Directory {json_dir_path} does not exist, creating it...')
+            os.makedirs(json_dir_path, exist_ok=True)
+
+        # Step 2: List all files in the directory
+        self._article_files = [f for f in os.listdir(json_dir_path)
+            if os.path.isfile(os.path.join(json_dir_path, f))]
+
+        logger.info(f'Successfully imported article files from this path: {json_dir_path}')
         
     def load_article_data(self, article_file_name: str) -> dict:
         """
@@ -50,16 +50,16 @@ class ArticleLoaderFromJson:
             None
         """
         
-         # Step 1: Check if directory exists
-        if os.path.isdir(file_path):
+        # Step 1: Check if directory exists, create if not
+        if not os.path.isdir(file_path):
+            logger.info(f'Directory {file_path} does not exist, creating it...')
+            os.makedirs(file_path, exist_ok=True)
             
-            # Step 2: Save article at teh given file_path
-            with open(file_path + article_file_name, 'w', encoding='utf-8') as f:
-                json.dump(processed_article, f, indent=2, ensure_ascii=False)
+        # Step 2: Save article at teh given file_path
+        with open(file_path + article_file_name, 'w', encoding='utf-8') as f:
+            json.dump(processed_article, f, indent=2, ensure_ascii=False)
 
-            logger.info(f'Successfully saved article at: "{file_path + article_file_name}"')
-        else:
-            raise ValueError("The provided directory path does not exist!")
+        logger.info(f'Successfully saved article at: "{file_path + article_file_name}"')
         
     @property
     def article_files(self) -> list:
