@@ -92,6 +92,7 @@ async def main(seconds_wait: str = 600, batch_size: int = 10):
     tries_outside_working_hours = 0
     
     logger.info(f'Checking whether we are operating during work hours/days... This is try number: {tries_outside_working_hours}')
+    
     while True:
         if working_hours.is_working_hours(timezone_str="Europe/Berlin"):
             # Set the number of tries outside of working hours back to 0

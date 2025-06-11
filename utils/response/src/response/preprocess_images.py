@@ -73,7 +73,7 @@ def download_and_process_image(
                 image = image.convert('RGB')
 
             # Resize if too large (adjust size as needed)
-            max_size = (500, 500)  # Example max size
+            max_size = (500, 500)
             if image.size[0] > max_size[0] or image.size[1] > max_size[1]:
                 image.thumbnail(max_size)
 
