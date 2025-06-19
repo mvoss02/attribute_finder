@@ -9,14 +9,20 @@ build-for-dev:
 
 # Build Docker image (for container registry, production)
 build-for-cr:
-	docker buildx build --platform linux/amd64 -f Dockerfile -t pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/samples/attribute-finder:$(TAG) .
+	docker buildx build --platform linux/amd64 -f Dockerfile -t pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/pim/attribute-finder:$(TAG) .
 
 push-to-cr:
-	docker push pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/samples/attribute-finder:$(TAG)
+	docker push pimservicecontainerregistry-cfbkatewhxevapaf.azurecr.io/pim/attribute-finder:$(TAG)
 
-# Run container with mounted data
+# Run container with mounted data and not with API!
 run-with-docker-dev: build-for-dev
 	docker run -it \
+		-v $$(pwd)/data:/app/data \
+		attribute-finder:$(TAG)
+
+# Run container with mounted data and with API!
+run-with-docker-de-api: build-for-dev
+	docker run -it -p 8000:8000 \
 		-v $$(pwd)/data:/app/data \
 		attribute-finder:$(TAG)
 

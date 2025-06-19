@@ -3,7 +3,7 @@
 ########################################################
 # Stage 1: Builder stage
 ########################################################
-FROM python:3.12-slim-bookworm AS builder
+FROM python:3.11-slim-bookworm AS builder
 
 # # Install build dependencies
 RUN apt-get update && apt-get install -y \
@@ -25,7 +25,7 @@ ENV UV_LINK_MODE=copy
 WORKDIR /app
 
 # Copy pyproject.toml, uv.lock that define the dependencies
-COPY pyproject.toml uv.lock run.py /app/
+COPY pyproject.toml uv.lock run.py api.py /app/
 
 # Copy local packages that are used in the project (utils and config)
 COPY utils /app/utils
@@ -40,7 +40,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ########################################################
 # Stage 2: Final stage
 ########################################################
-FROM python:3.12-slim-bookworm
+FROM python:3.11-slim-bookworm
 
 # It is important to use the image that matches the builder, as the path to the
 # Python executable must be the same, e.g., using `python:3.11-slim-bookworm`
@@ -62,7 +62,10 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
-CMD ["python", "/app/run.py"]
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# If one wants to not use the API endpoint
+# CMD ["python", "/app/run.py"]
 
 # Debug container (keep running with)
 # CMD ['sleep', '1000']

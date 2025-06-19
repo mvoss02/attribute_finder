@@ -9,6 +9,7 @@ dependencies = [
     "backoff>=2.2.1",
     "config",
     "data_preprocessing",
+    "fastapi>=0.115.13",
     "helper",
     "loguru>=0.7.3",
     "matplotlib>=3.10.0",
