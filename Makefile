@@ -21,7 +21,7 @@ run-with-docker-dev: build-for-dev
 		attribute-finder:$(TAG)
 
 # Run container with mounted data and with API!
-run-with-docker-de-api: build-for-dev
+run-with-docker-dev-api: build-for-dev
 	docker run -it -p 8000:8000 \
 		-v $$(pwd)/data:/app/data \
 		attribute-finder:$(TAG)
