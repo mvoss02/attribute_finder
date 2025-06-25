@@ -34,4 +34,3 @@ async def start_processing():
 @app.get("/status")
 def status():
     return {"running": is_running}
-

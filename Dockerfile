@@ -62,7 +62,9 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 80
+
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "80"]
 
 # If one wants to not use the API endpoint
 # CMD ["python", "/app/run.py"]
