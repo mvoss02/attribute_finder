@@ -34,9 +34,3 @@ clean:
 run-response-model:
 	@echo "Running the response model..."
 	uv run python run.py
-
-# Visualize output - currentlyt not working...
-# visualize-output:
-#	@echo "Visualizing the output..."
-#	uv run python -m visualize
-

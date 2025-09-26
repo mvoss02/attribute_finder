@@ -1,6 +1,5 @@
 from loguru import logger
-
-from response import get_attribute, preprocess_images
+from utils.response import get_attribute, preprocess_images
 
 
 async def process_article(article: dict) -> dict:
@@ -78,4 +77,4 @@ async def process_article(article: dict) -> dict:
         ):
             logger.warning(f"Failed to process article: {product_id} and the corresponding attribute: {attribut.get('Identifier')}")
 
-    return article 
+    return article

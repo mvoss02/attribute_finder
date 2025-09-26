@@ -1,18 +1,19 @@
 import asyncio
 import signal
 
-from data_preprocessing import ftp_data_loader, ftp_data_post, json_article_loader
-from helper import cleanup_files
 from loguru import logger
-from response import process_article
 
 from config.config import data_config
+from config.paths import data_path_in, data_path_out
+from utils.data_preprocessing import ftp_data_loader, ftp_data_post, json_article_loader
+from utils.helper import cleanup_files
+from utils.response import process_article
 
 # Global flag for graceful shutdown
 shutdown_requested = False
 
 
-def signal_handler(sig, frame):
+def signal_handler():
     global shutdown_requested
     logger.info("Received shutdown signal, will finish current work and exit gracefully...")
     shutdown_requested = True
@@ -31,7 +32,7 @@ async def main(seconds_wait: str = 600, batch_size: int = 10):
 
         # Step 2: Create Article Reader Object and iterate over each article individually
         article_reader = json_article_loader.ArticleLoaderFromJson(
-            json_dir_path=data_config.raw_data_path
+            json_dir_path=data_path_out
         )
 
         logger.debug(f"Here are the files we read in: {article_reader.article_files}. Batch size set: {data_config.batch_size}.")
@@ -65,37 +66,37 @@ async def main(seconds_wait: str = 600, batch_size: int = 10):
                 )
 
                 article_reader.save_article_as_json(
-                    file_path=data_config.output_data_path,
+                    file_path=data_path_in,
                     article_file_name=file_name,
                     processed_article=processed_article,
                 )
 
-            # Step 5: Posting data to "out" folder and delete data from "in" folder on FTP-Server
+            # Step 5: Posting data to "in" folder and delete data from "out" folder on FTP-Server
             # Initialize ftp handler
             ftp_data_poster = ftp_data_post.FTPDataPoster()
 
             # Posting json files to FTP-Server
-            logger.info('Posting data to the FTP Server (to "out/" folder)')
+            logger.info('Posting data to the FTP Server (to "in/" folder)')
             ftp_data_poster.post_json_to_ftp()
-            logger.info(f'Finished posting article (article id: {article["ProduktID"]}) to FTP ("out/" folder)')
+            logger.info(f'Finished posting article (article id: {article["ProduktID"]}) to FTP ("in/" folder)')
 
             # Only do cleanup and FTP operations if we weren't interrupted
             if not shutdown_requested:
                 # Deleting files on FTP-Server, which have been fully processed
-                logger.info('Deleting data from FTP Server (from "in/" folder)')
-                ftp_data_poster.delete_files_from_ftp(
-                    files_to_delete=article_reader.article_files
+                logger.info('Deleting data from FTP Server (from "out/" folder)')
+                ftp_data_poster.move_to_done(
+                    files=article_reader.article_files
                 )
-                logger.info(f'Finished deleting article (article id: {article["ProduktID"]}) from FTP ("in/" folder)')
-
-                # Step 6: Delete article from ./data/in/ locally
+                logger.info(f'Finished moving article (article id: {article["ProduktID"]}) from FTP ("out/" folder) to "out/done/" folder')
+                
+                # Step 6: Delete article from ./data/out/ locally
                 cleanup_files.cleanup_files(
-                    dir_path_to_delete=data_config.raw_data_path
+                    dir_path_to_delete=data_path_out
                 )
 
-                # Step 7: Delete article from ./data/out/ locally
+                # Step 7: Delete article from ./data/in/ locally
                 cleanup_files.cleanup_files(
-                    dir_path_to_delete=data_config.raw_data_path
+                    dir_path_to_delete=data_path_in
                 )
 
                 logger.info(f"Done processing {len(article_reader.article_files)} articles")
@@ -109,7 +110,7 @@ async def main(seconds_wait: str = 600, batch_size: int = 10):
         else:
             # Add to the number of tries without new data during working hours
             number_of_idle_checks += 1
-            logger.warning(f"No article file paths were found at {data_config.raw_data_path}. This is check number {number_of_idle_checks * number_of_idle_checks} that resulted in no new data. Let us try in {seconds_wait * number_of_idle_checks} sec again!")
+            logger.warning(f"No article file paths were found at {data_path_in}. This is check number {number_of_idle_checks * number_of_idle_checks} that resulted in no new data. Let us try in {seconds_wait * number_of_idle_checks} sec again!")
 
             if number_of_idle_checks >= 10:
                 break  # Exits while True loop -> program ends -> container stops

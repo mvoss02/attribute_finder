@@ -26,3 +26,6 @@ data/
 # API Key
 **/openai_credentials.env
 **/ftp.settings.env
+
+# Ruff cache
+.ruff_cache/

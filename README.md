@@ -19,7 +19,8 @@ A machine learning service for extracting fashion attributes using LLMs and high
 ## 🛠 Installation
 
 1. Clone repository:
-(requires SSH Key + connected to company network)
+   (requires SSH Key + connected to company network)
+
 ```bash
 git clone git@gitlab.hachmeister-partner.de:mfriebe/attribut-finder-api.git
 cd attribut-finder-api
@@ -49,3 +50,7 @@ attribute_finder/
 ├── services/ # Service configurations
 ├── data/ # Data storage
 ```
+
+## Data Folder Structure
+
+Novomind sends data to the "out/" folder, whereas data is sent back, after processing, to the "in/" folder.

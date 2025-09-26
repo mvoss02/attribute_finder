@@ -47,11 +47,11 @@ FROM python:3.11-slim-bookworm
 # will fail.
 WORKDIR /app
 
+# Install curl in the final image as well
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Copy the /usr/local from the builder
 COPY --from=builder /usr/local /usr/local
-
-# Ensure TA-Lib is linked correctly
-RUN ldconfig
 
 # Copy the application from the builder
 COPY --from=builder --chown=app:app /app /app

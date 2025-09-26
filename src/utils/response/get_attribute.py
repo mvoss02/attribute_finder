@@ -3,15 +3,14 @@ import json
 import os
 from typing import List, Optional
 
-from loguru import logger
-from pydantic import BaseModel
-import asyncio
 import backoff
 import openai
+from loguru import logger
+from pydantic import BaseModel
 
-from config.config import response_config, openai_config
-from response.llm import llm_client
-from response.preprocess_images import (
+from config.config import openai_config, response_config
+from utils.response.llm import llm_client
+from utils.response.preprocess_images import (
     download_and_process_image,
     write_failed_image,
 )
@@ -22,7 +21,7 @@ async def _call_llm(client, content: List, is_color: bool, temperature: float = 
     # Defining a class which allows for the response of the LLM to be of JSON format
     class Response(BaseModel):
         response: str
-    
+
     # Defining a class which allows for the response of the LLM to be of JSON format
     class ResponseColor(BaseModel):
         response: List[str]
@@ -77,7 +76,7 @@ async def get_response(
     """
 
     client = llm_client.get_client()
-    
+
     final_images = []
     for i, img in enumerate(image_urls):
         # Process image first
@@ -128,7 +127,7 @@ async def get_response(
             logger.info(
                     f'Getting LLM Resposne from product {product_id} and attribute {attribute_id} with image {image_urls}'
                 )
-            
+
             response = await _call_llm(client=client, content=content, is_color=attribute_id == 'farbe', temperature=openai_config.temperature, max_tokens=openai_config.max_tokens)
 
             try:
@@ -146,8 +145,8 @@ async def get_response(
 
         except Exception as e:
             logger.error(f'API call failed: {str(e)}')
-            raise Exception
-        
+            raise Exception(f'API call failed: {str(e)}')
+
         finally:
             # Clean up all saved image files
             for img_path in final_images:
@@ -160,8 +159,8 @@ async def get_response(
     else:
         logger.error('None of the image paths worked!')
         return None
-    
-    
+
+
 if __name__ == '__main__':
     logger.info('Starting LLM response directly from __main__ in the source file')
 
@@ -174,7 +173,7 @@ if __name__ == '__main__':
     #logger.debug(f'Test result colour for product_id 80416852: {test_result_colour}')
 
     #TODO: Implement other attribute than color article
-        
+
     #logger.debug(f'Test result for product_id 80416852: {test_result}')
-    
+
     logger.info('--- %s seconds ---' % (time.time() - start_time))

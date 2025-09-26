@@ -7,10 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "asyncio>=3.4.3",
     "backoff>=2.2.1",
-    "config",
-    "data_preprocessing",
     "fastapi>=0.115.13",
-    "helper",
     "loguru>=0.7.3",
     "matplotlib>=3.10.0",
     "openai>=1.60.2",
@@ -21,21 +18,52 @@ dependencies = [
     "pydantic>=2.10.5",
     "pydantic-settings>=2.7.1",
     "requests>=2.32.3",
-    "response",
     "uvicorn>=0.34.2",
 ]
 
-# Optional dependencies specific to each module
-[project.optional-dependencies]
-response = []
-data_loading = []
-utils = []
-
-[tool.uv.workspace]
-members = ["config", "utils/data_preprocessing", "utils/response", "utils/helper"]
-
-[tool.uv.sources]
-config = { workspace = true }
-response = { workspace = true }
-data-preprocessing = { workspace = true }
-helper = { workspace = true }
+[tool.uv]
+package = true
+ 
+[tool.coverage.run]
+omit = [
+    "*/__version__.py",
+    "*/__init__.py",
+    "*/tests/*",
+]
+source = ["."]
+ 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+markers = [
+    "individual: marks tests that require the --run-individual flag"
+]
+ 
+[dependency-groups]
+test = [
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "ruff>=0.12.2",
+]
+ 
+[tool.ruff]
+line-length = 88
+lint.select = [
+    "C",  # mccabe rules
+    "F",  # pyflakes rules
+    "E",  # pycodestyle error rules
+    "W",  # pycodestyle warning rules
+    "B",  # flake8-bugbear rules
+    "I",  # isort rules
+]
+lint.ignore = [
+    "C901",  # max-complexity-10
+    "E501",  # line-too-long
+    "B904",  # except clause
+]
+ 
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "single"
+ 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
