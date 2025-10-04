@@ -1,112 +1,111 @@
 import io
 import os
+import posixpath
+import re
+import stat
+from datetime import datetime
 
 import paramiko
 from loguru import logger
 
+from config.config import ftp_config
 from config.paths import data_path_out
 
-from config.config import ftp_config
 
-
-def load_json_from_ftp(batch_size: int = None):
+def load_json_from_ftp(batch_size: int = None) -> int:
     """
-    Load JSON files from FTP server, optionally in batches.
-
-    Args:
-        batch_size (int, optional): Maximum number of files to download in this batch.
-                                   If None, downloads all files.
-
-    Returns:
-        int: Number of files actually downloaded
+    Load JSON files from SFTP server, only from date-based subfolders (YYYYMMDD) under '/out'.
     """
-    host_address = ftp_config.host_address_integ if ftp_config.integ_or_prod == 'integ' else ftp_config.host_address_prod
-    password = ftp_config.integ_password if ftp_config.integ_or_prod == 'integ' else ftp_config.prod_password
+    host_address = ftp_config.host_address_integ if ftp_config.integ_or_prod == "integ" else ftp_config.host_address_prod
+    password = ftp_config.integ_password if ftp_config.integ_or_prod == "integ" else ftp_config.prod_password
 
-    try:
-        # Connect to SFTP
-        logger.info(f"Connecting to SFTP with host_address: {host_address} and user: {ftp_config.username}")
-
-        # Create an SSHClient object
-        client = paramiko.SSHClient()
-
-        # Automatically add host key
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        # Connect to the server
-        client.connect(
-            hostname=host_address,
-            port=ftp_config.port,
-            username=ftp_config.username,
-            password=password,
-        )
-
-        # Open SFTP session
-        sftp_client = client.open_sftp()
-
-        # Change to the 'out/' directory
-        # Novomind puts files into out/ folder - we read from there - put them back to in/ folder
-        sftp_client.chdir('out/')
-        current_dir = sftp_client.getcwd()
-
-        logger.info(f"Successfully connected to SFTP and changed directory to: {current_dir}")
-
-    except Exception as e:
-        logger.error(f'Unable to login to host_address: {host_address} with user: {ftp_config.username}')
-        raise Exception(f'Unable to login to host_address: {host_address} with user: {ftp_config.username}. Error: {e}')
-
+    client = None
+    sftp = None
     files_downloaded = 0
+    base_dir = "/out"  # absolute path; avoids relative confusion
 
     try:
-        # Get all folders in the given directory
-        file_list = sftp_client.listdir()
-        logger.info(f"Found {len(file_list)} item(s) under {current_dir}: {file_list}")
+        logger.info(f"Connecting to SFTP with host_address: {host_address} and user: {ftp_config.username}")
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname=host_address, port=ftp_config.port, username=ftp_config.username, password=password)
 
-        # Filter only JSON files
-        json_files = [f for f in file_list if f.endswith('.json')]
-        logger.info(f"Found {len(json_files)} JSON files in 'out/'.")
+        sftp = client.open_sftp()
 
-        # Apply batch limit if specified
-        if batch_size is not None:
-            json_files = json_files[:batch_size]
-            logger.info(f"Processing batch of {len(json_files)} files (batch_size={batch_size})")
+        # --- discover date folders under /out ---
+        entries = sftp.listdir_attr(base_dir)
+        date_dirs = []
+        for e in entries:
+            if stat.S_ISDIR(e.st_mode) and re.fullmatch(r"\d{8}", e.filename):
+                try:
+                    datetime.strptime(e.filename, "%Y%m%d")
+                    date_dirs.append(e.filename)
+                except ValueError:
+                    pass
 
-        for filename in json_files:
-            logger.info(f"\n Reading content of '{filename}' from SFTP")
+        logger.info(f"Found {len(date_dirs)} date folders under {base_dir}: {date_dirs}")
+
+        if not date_dirs:
+            logger.warning("No date folders found; nothing to download.")
+            return 0
+
+        # --- collect JSON files inside those folders ---
+        json_remote_paths = []
+        for d in sorted(date_dirs):
+            remote_subdir = posixpath.join(base_dir, d)          # e.g. /out/20250626
             try:
-                # Create an in-memory binary stream to store the file content temporarily
-                file_content_buffer = io.BytesIO()
+                names = sftp.listdir(remote_subdir)              # list relative to absolute /out/20250626
+            except Exception as e:
+                logger.error(f"Unable to list folder '{remote_subdir}': {e}")
+                continue
 
-                # Download file content to buffer
-                with sftp_client.open(filename, 'rb') as remote_file:
-                    file_content_buffer.write(remote_file.read())
+            jsons = [n for n in names if n.endswith(".json")]
+            logger.info(f"Folder {remote_subdir}: {len(jsons)} JSON file(s): {jsons}")
+            json_remote_paths.extend([posixpath.join(remote_subdir, n) for n in jsons])
 
-                file_content_buffer.seek(0)  # Go to the beginning of the stream
+        # batch limit
+        if batch_size is not None:
+            json_remote_paths = json_remote_paths[:batch_size]
+            logger.info(f"Processing batch of {len(json_remote_paths)} files (batch_size={batch_size})")
+        else:
+            logger.info(f"Processing {len(json_remote_paths)} files (no   limit)")
 
-                # Create the local directory if it doesn't exist
-                os.makedirs(data_path_out, exist_ok=True)
+        if not json_remote_paths:
+            logger.info("No JSON files found in the date folders; nothing to download.")
+            return 0
 
-                # Define the full local path for saving the file
-                local_file_path = os.path.join(data_path_out, filename)
+        # --- download ---
+        os.makedirs(data_path_out, exist_ok=True)
 
-                logger.info(f"Saving '{filename}' to '{local_file_path}'")
+        for remote_path in json_remote_paths:
+            filename = posixpath.basename(remote_path)
+            logger.info(f"Reading '{remote_path}'")
+            try:
+                buf = io.BytesIO()
+                with sftp.open(remote_path, "rb") as rf:
+                    buf.write(rf.read())
+                buf.seek(0)
 
-                # Open the local file in binary write mode ('wb')
-                with open(local_file_path, 'wb') as local_file:
-                    local_file.write(file_content_buffer.getvalue())  # Write the entire buffer content
+                local_path = os.path.join(data_path_out, filename)
+                with open(local_path, "wb") as lf:
+                    lf.write(buf.getvalue())
 
-                logger.info(f"Successfully saved '{filename}' locally")
+                logger.info(f"Saved to '{local_path}'")
                 files_downloaded += 1
 
             except Exception as e:
-                logger.error(f"Error retrieving or saving '{filename}': {e}")
+                logger.error(f"Error retrieving or saving '{remote_path}': {e}")
+
+        return files_downloaded
 
     except Exception as e:
-        logger.error(f"Error retrieving files. Error: {e}")
-
+        logger.error(f"FTP error (host: {host_address}, user: {ftp_config.username}): {e}")
+        raise
     finally:
-        # Close SFTP connection and transport
-        sftp_client.close()
+        try:
+            if sftp:
+                sftp.close()
+        finally:
+            if client:
+                client.close()
         logger.info(f"SFTP connection closed. Downloaded {files_downloaded} files.")
-
-    return files_downloaded

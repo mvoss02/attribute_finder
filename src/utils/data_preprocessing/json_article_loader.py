@@ -58,10 +58,10 @@ class ArticleLoaderFromJson:
             os.makedirs(file_path, exist_ok=True)
 
         # Step 2: Save article at teh given file_path
-        with open(file_path + article_file_name, 'w', encoding='utf-8') as f:
+        with open(file_path / article_file_name, 'w', encoding='utf-8') as f:
             json.dump(processed_article, f, indent=2, ensure_ascii=False)
 
-        logger.info(f'Successfully saved article at: "{file_path + article_file_name}"')
+        logger.info(f'Successfully saved article at: "{file_path / article_file_name}"')
 
     @property
     def article_files(self) -> list:

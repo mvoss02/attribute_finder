@@ -13,7 +13,7 @@ from utils.response import process_article
 shutdown_requested = False
 
 
-def signal_handler():
+def signal_handler(*kwargs):
     global shutdown_requested
     logger.info("Received shutdown signal, will finish current work and exit gracefully...")
     shutdown_requested = True
@@ -71,14 +71,14 @@ async def main(seconds_wait: str = 600, batch_size: int = 10):
                     processed_article=processed_article,
                 )
 
-            # Step 5: Posting data to "in" folder and delete data from "out" folder on FTP-Server
-            # Initialize ftp handler
-            ftp_data_poster = ftp_data_post.FTPDataPoster()
+                # Step 5: Posting data to "in" folder and delete data from "out" folder on FTP-Server
+                # Initialize ftp handler
+                ftp_data_poster = ftp_data_post.FTPDataPoster()
 
-            # Posting json files to FTP-Server
-            logger.info('Posting data to the FTP Server (to "in/" folder)')
-            ftp_data_poster.post_json_to_ftp()
-            logger.info(f'Finished posting article (article id: {article["ProduktID"]}) to FTP ("in/" folder)')
+                # Posting json files to FTP-Server
+                logger.info('Posting data to the FTP Server (to "in/" folder)')
+                ftp_data_poster.post_json_to_ftp()
+                logger.success(f'Finished posting article (article id: {article["ProduktID"]}) to FTP ("in/" folder)')
 
             # Only do cleanup and FTP operations if we weren't interrupted
             if not shutdown_requested:
@@ -87,8 +87,8 @@ async def main(seconds_wait: str = 600, batch_size: int = 10):
                 ftp_data_poster.move_to_done(
                     files=article_reader.article_files
                 )
-                logger.info(f'Finished moving article (article id: {article["ProduktID"]}) from FTP ("out/" folder) to "out/done/" folder')
-                
+                logger.success(f'Finished moving articles ({article_reader.article_files}) from FTP ("out/" folder) to "out/done/" folder')
+
                 # Step 6: Delete article from ./data/out/ locally
                 cleanup_files.cleanup_files(
                     dir_path_to_delete=data_path_out
@@ -99,7 +99,7 @@ async def main(seconds_wait: str = 600, batch_size: int = 10):
                     dir_path_to_delete=data_path_in
                 )
 
-                logger.info(f"Done processing {len(article_reader.article_files)} articles")
+                logger.success(f"Done processing {len(article_reader.article_files)} articles")
 
                 # Check if there might be more files to process
                 if files_downloaded == batch_size:

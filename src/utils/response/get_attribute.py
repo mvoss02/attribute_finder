@@ -17,7 +17,7 @@ from utils.response.preprocess_images import (
 
 
 @backoff.on_exception(backoff.expo, openai.RateLimitError)
-async def _call_llm(client, content: List, is_color: bool, temperature: float = 0.0, max_tokens: int = 50,):
+async def _call_llm(client, content: List, is_color: bool, temperature: float = 0.0, max_completion_tokens: int = 50,):
     # Defining a class which allows for the response of the LLM to be of JSON format
     class Response(BaseModel):
         response: str
@@ -29,7 +29,7 @@ async def _call_llm(client, content: List, is_color: bool, temperature: float = 
     response = await client.beta.chat.completions.parse(
                 temperature=temperature,
                 model=llm_client.model_name,
-                max_tokens=max_tokens,
+                max_completion_tokens=max_completion_tokens,
                 messages=[
                     {'role': 'system', 'content': response_config.system_prompt_attribute if not is_color else response_config.system_prompt_color},
                     {
@@ -128,7 +128,7 @@ async def get_response(
                     f'Getting LLM Resposne from product {product_id} and attribute {attribute_id} with image {image_urls}'
                 )
 
-            response = await _call_llm(client=client, content=content, is_color=attribute_id == 'farbe', temperature=openai_config.temperature, max_tokens=openai_config.max_tokens)
+            response = await _call_llm(client=client, content=content, is_color=attribute_id == 'farbe', temperature=openai_config.temperature, max_completion_tokens=openai_config.max_completion_tokens)
 
             try:
                 json_response = json.loads(response.choices[0].message.content)

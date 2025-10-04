@@ -53,4 +53,12 @@ attribute_finder/
 
 ## Data Folder Structure
 
-Novomind sends data to the "out/" folder, whereas data is sent back, after processing, to the "in/" folder.
+Novomind sends data to the "out/" folder, whereas data is sent back (after processing) to the "in/" folder.
+
+## Run Tests
+
+### Testing FTP-Server Connection
+
+```sh
+uv run pytest -k test_sftp_has_out_folder -s # Remove -s if you do not want to see logging
+```

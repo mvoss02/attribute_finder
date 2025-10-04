@@ -1,9 +1,12 @@
 import os
+import re
+import stat
+
 import paramiko
 from loguru import logger
 
-from config.paths import data_path_out
 from config.config import ftp_config
+from config.paths import data_path_out
 
 
 class FTPDataPoster:
@@ -103,7 +106,7 @@ class FTPDataPoster:
                 sftp.put(local_file_path, remote_path)
                 uploaded += 1
 
-            logger.info(f"Uploaded {uploaded} JSON file(s)")
+            logger.success(f"Uploaded {uploaded} JSON file(s)")
             return uploaded
 
         except Exception as e:
@@ -114,34 +117,65 @@ class FTPDataPoster:
 
     def move_to_done(self, files):
         """
-        Move files in remote out/ to out/done/ via server-side rename.
+        Move files from out/<YYYYMMDD>/FILE to out/done/FILE via server-side rename.
         `files` should be a list of basenames (e.g., ['a.json', 'b.json']).
         """
         try:
             self.connect()
             sftp = self.sftp_client
 
-            # ensure /out and /out/done exist
+            # 1) work under 'out'
             try:
-                sftp.chdir('out/')
+                sftp.chdir('out')
             except IOError:
                 logger.error("Remote directory 'out/' does not exist")
                 raise
-            self._ensure_done_dir()
+
+            # 2) ensure 'done/' exists (without changing cwd permanently)
+            try:
+                sftp.stat('done')
+            except IOError:
+                logger.warning("'done/' directory does not exist under 'out/'. Creating it.")
+                sftp.mkdir('done')
+
+            # 3) collect date folders in 'out/'
+            entries = sftp.listdir_attr('.')
+            date_dirs = [
+                e.filename
+                for e in entries
+                if stat.S_ISDIR(e.st_mode) and re.fullmatch(r'\d{8}', e.filename)
+            ]
+            if not date_dirs:
+                logger.warning("No date folders found under 'out/'. Nothing to move.")
+                return
 
             moved = 0
-            out_dir = sftp.getcwd()  # currently /out
-            for name in files:
-                src = self._rjoin(out_dir, name)
-                dst = self._rjoin(out_dir, 'done', name)
+            # 4) for each basename, find it in one of the date dirs and move it
+            for fname in files:
+                src = None
+                for d in date_dirs:
+                    candidate = f"{d}/{fname}"
+                    try:
+                        sftp.stat(candidate)  # exists?
+                        src = candidate
+                        break
+                    except IOError:
+                        continue
+
+                if src is None:
+                    logger.error(f"{fname} not found in any date folder under 'out/'")
+                    continue
+
+                dst = f"done/{fname}"
                 try:
                     sftp.rename(src, dst)
                     logger.info(f"Moved: {src} -> {dst}")
                     moved += 1
                 except IOError as e:
-                    logger.error(f"Could not move {name}: {e}")
+                    logger.error(f"Could not move {fname}: {e}")
 
             logger.info(f"Moved {moved}/{len(files)} file(s) to out/done/")
+
         except Exception as e:
             logger.error(f"Error during move: {e}")
             raise
@@ -155,7 +189,7 @@ class FTPDataPoster:
         Args:
             files_to_delete (list[str]): List of filenames (basenames) to delete.
         """
-        
+
         try:
             self.connect()
 

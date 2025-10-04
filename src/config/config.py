@@ -22,7 +22,7 @@ class OpenAIConfig(BaseSettings):
     api_base: str = os.environ["API_BASE"]
     model_name: str = os.environ["MODEL_NAME"]
     temperature: float = os.environ["TEMPERATURE"]
-    max_tokens: int = os.environ["MAX_TOKENS"]
+    max_completion_tokens: int = os.environ["MAX_COMPLETION_TOKENS"]
     provider: Literal['openai', 'ollama'] = os.environ["PROVIDER"]
 
 
