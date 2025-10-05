@@ -25,11 +25,10 @@ ENV UV_LINK_MODE=copy
 WORKDIR /app
 
 # Copy pyproject.toml, uv.lock that define the dependencies
-COPY pyproject.toml uv.lock run.py api.py /app/
+COPY pyproject.toml uv.lock
 
-# Copy local packages that are used in the project (utils and config)
-COPY utils /app/utils
-COPY config /app/config
+# Copy code over
+COPY src /app/src
 
 # Install the dependencies
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -64,7 +63,7 @@ ENTRYPOINT []
 
 EXPOSE 80
 
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "80"]
 
 # If one wants to not use the API endpoint
 # CMD ["python", "/app/run.py"]
