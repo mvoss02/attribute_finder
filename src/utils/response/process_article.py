@@ -30,12 +30,16 @@ async def process_article(article: dict) -> dict:
 
     for attribut in article.get("Klassifikations-Attribute", []):
         logger.info(f"Analysing article: {product_id} and the corresponding attribute is: {attribut.get('Bezeichner')}")
-
-        # Get possible values and the corrsponding descriptions to these values
-        possible_outcomes_description = {
-            item.get("Identifier"): item.get("Bezeichner")
-            for item in attribut.get("Attributwerte")
-        }
+        
+        # TODO: Think of better logic here - currently only color attribute does not have possible outcomes when Hexcode is requested
+        if attribut.get("Identifier", None) == "farbHex":
+            possible_outcomes_description = None
+        else:
+            # Get possible values and the corrsponding descriptions to these values
+            possible_outcomes_description = {
+                item.get("Identifier"): item.get("Bezeichner")
+                for item in attribut.get("Attributwerte")
+            }
 
         # Check if at least one image url has been supplied
         if len(image_urls) != 0:
@@ -61,9 +65,7 @@ async def process_article(article: dict) -> dict:
                 supplier_colour=farb_id
                 if attribut.get("Identifier") == "farbe"
                 else None,  # The supplier's color id - Is only supplid if we want to analyze the color
-                possible_options=possible_outcomes_description
-                if attribut.get("Identifier") != "farbe"
-                else None,  # Dictioanry of attribute:description
+                possible_options=possible_outcomes_description,  # Dictioanry of attribute:description
             )
         else:
             preprocess_images.write_failed_image(

@@ -6,7 +6,7 @@ import paramiko
 from loguru import logger
 
 from config.config import ftp_config
-from config.paths import data_path_out
+from config.paths import data_path_in
 
 
 class FTPDataPoster:
@@ -74,7 +74,7 @@ class FTPDataPoster:
 
     def post_json_to_ftp(self) -> int:
         """
-        Upload JSON files from local data_path_out to remote out/ directory.
+        Upload JSON files from local data_path_in to remote in/ directory.
         Returns the number of files uploaded.
         """
         try:
@@ -90,14 +90,14 @@ class FTPDataPoster:
                 logger.error("Remote directory 'in/' does not exist")
                 raise
 
-            if not data_path_out or not os.path.isdir(data_path_out):
-                raise ValueError(f"'{data_path_out}' is not a valid local directory")
+            if not data_path_in or not os.path.isdir(data_path_in):
+                raise ValueError(f"'{data_path_in}' is not a valid local directory")
 
             uploaded = 0
-            for filename in os.listdir(data_path_out):
+            for filename in os.listdir(data_path_in):
                 if not filename.endswith('.json'):
                     continue
-                local_file_path = os.path.join(data_path_out, filename)
+                local_file_path = os.path.join(data_path_in, filename)
                 if not os.path.isfile(local_file_path):
                     continue
 
