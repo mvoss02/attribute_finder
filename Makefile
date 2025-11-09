@@ -34,3 +34,8 @@ clean:
 run-response-model:
 	@echo "Running the response model..."
 	uv run python run.py
+
+# Run API
+run-api:
+	@echo "Running the API..."
+	uv run uvicorn src.api:app --host 0.0.0.0 --port 80
