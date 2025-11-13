@@ -146,7 +146,16 @@ class FTPDataPoster:
                     logger.info(f"Moved: {src} -> {dst}")
                     moved += 1
                 except IOError as e:
-                    logger.error(f"Could not move {fname}: {e}")
+                    logger.warning(f"File '{fname}' could not be moved: {e}. Probably it already exists in 'done/'.")
+                    # Delete file in done and retry
+                    try:
+                        sftp.remove(dst)
+                        logger.warning(f"Deleted existing file in 'done/': {dst}. Retrying move.")
+                        sftp.rename(src, dst)
+                        logger.success(f"Moved: {src} -> {dst}")
+                        moved += 1
+                    except IOError as e2:
+                        logger.error(f"Retry failed for moving '{fname}': {e2}")
 
             logger.info(f"Moved {moved}/{len(files)} file(s) to out/done/")
 

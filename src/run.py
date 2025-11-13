@@ -22,7 +22,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
 
-async def main(seconds_wait: str = 600, batch_size: int = 10):
+async def main(seconds_wait: str = 60, batch_size: int = 100):
     global shutdown_requested
 
     while True and not shutdown_requested:

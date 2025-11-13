@@ -62,7 +62,7 @@ def load_json_from_ftp(batch_size: int = None) -> int:
             for e in entries
             if stat.S_ISREG(e.st_mode) and e.filename.endswith('.json')
         ]
-        logger.info(f"Folder {base_dir}: {len(jsons)} JSON file(s): {jsons}")
+        logger.info(f"Folder {base_dir}: {len(jsons)} JSON file(s)") #{jsons}
         json_remote_paths.extend([posixpath.join(base_dir, n) for  n in jsons])
  
         # batch limit
